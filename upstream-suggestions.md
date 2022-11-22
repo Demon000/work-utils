@@ -5,7 +5,7 @@
 
 
 ### Device tree
- * device tree bindings should be a separate commit
+ * device tree bindings should be a separate commit before the commit with the driver itself
  * the `MAINTAINERS` entry (see below) should be added now for just the device tree binding file
  * use standard unit prefixes in device tree bindings where applicable, see Documentation/devicetree/bindings/property-units.txt
  * try to use existing $ref when writing device tree bindings, eg $ref: adc.yaml, see below
