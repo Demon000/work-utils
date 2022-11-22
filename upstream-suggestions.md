@@ -248,7 +248,16 @@ static const struct spi_device_id ad74115_spi_id[] = {
  * line length under 80 where possible, max 100
  * do not break up error message strings to preserve max line length
  * use `default` case for switch statements to error out of a function
- * use wildcard in MAINTAINERS file when matching multiple files of the same driver
+ * use wildcard in MAINTAINERS file when matching multiple files of the same driver, eg:
+```
+ADXL367 THREE-AXIS DIGITAL ACCELEROMETER DRIVER
+M:  Cosmin Tanislav <cosmin.tanislav@analog.com>
+L:  linux-iio@vger.kernel.org
+S:  Supported
+W:  http://ez.analog.com/community/linux-device-drivers
+F:  Documentation/devicetree/bindings/iio/accel/adi,adxl367.yaml
+F:  drivers/iio/accel/adxl367*
+```
  * use enum order for the cases of a switch where the value is an enum
  * structure copy based initialization can be used when assigning to a struct, eg:
 ```
