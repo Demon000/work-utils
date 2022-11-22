@@ -69,6 +69,9 @@ If working on other subsystems, the trees for these can be found on
 For IIO, checkout the `testing` branch.
 `git checkout iio/testing`
 
+You can also look into using `git worktree`. It is very useful when you need
+to work on multiple branches at the same time.
+
 Cherry pick all your commits from your original working branch.
 There's a `pick-patches.sh` script that can help you do that.
 
