@@ -248,6 +248,7 @@ static const struct spi_device_id ad74115_spi_id[] = {
  * line length under 80 where possible, max 100
  * do not break up error message strings to preserve max line length
  * use `default` case for switch statements to error out of a function
+ * if this is a new driver add yourself to the MAINTAINERS file, see below
  * use wildcard in MAINTAINERS file when matching multiple files of the same driver, eg:
 ```
 ADXL367 THREE-AXIS DIGITAL ACCELEROMETER DRIVER
