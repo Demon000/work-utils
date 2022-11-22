@@ -1,11 +1,11 @@
 ### Workflow
 
-#### Initial setup
+### Initial setup
 
 Clone our git repository.
 `git clone https://github.com/analogdevicesinc/linux.git`
 
-#### Writing a driver
+### Writing a driver
 
 Checkout a new branch.
 
@@ -56,7 +56,7 @@ V1 -> V2:
 Once everything is handled and no one has any objections left, you can start
 upstreaming these patches.
 
-#### Upstreaming
+### Upstreaming
 
 Upstreaming can be a very tedious process.
 
