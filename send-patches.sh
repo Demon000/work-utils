@@ -4,6 +4,10 @@ POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+  --rfc)
+		RFC=1
+		shift
+		;;
 	-c|--cover-letter)
 		COVER_LETTER=1
 		shift
@@ -60,6 +64,10 @@ fi
 
 if [[ -n "$COVER_LETTER" ]]; then
 	FORMAT_PATCH_CMD+=" --cover-letter"
+fi
+
+if [[ -n "$RFC" ]]; then
+	FORMAT_PATCH_CMD+=" --rfc"
 fi
 
 ALL_PATCHES=$($FORMAT_PATCH_CMD "$COMMITS")
