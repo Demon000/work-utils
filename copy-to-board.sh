@@ -18,7 +18,7 @@ if [[ $# -lt 2 ]]; then
 fi
 
 BOARD_TYPE="$1"
-DTB="$2"
+DTB_ARG="$2"
 TRANSFER_MODE="$3"
 
 if [[ "$BOARD_TYPE" = "xil" ]]; then
@@ -27,13 +27,14 @@ if [[ "$BOARD_TYPE" = "xil" ]]; then
 
     DTB_SRC="arch/arm/boot/dts"
     DTB_TARGET="/boot/devicetree.dtb"
+    DTB="$DTB_ARG"
 elif [[ "$BOARD_TYPE" = "rpi" ]]; then
     KERNEL_SRC="arch/arm/boot/zImage"
     KERNEL_TARGET="/boot/kernel7l.img"
 
     OVERLAYS_SRC="arch/arm/boot/dts/overlays"
     OVERLAYS_TARGET="/boot/overlays"
-    OVERLAYS="$DTB"
+    OVERLAYS="$DTB_ARG"
 else
     print_usage
 fi
