@@ -70,7 +70,7 @@ elif [[ "$BOARD_TYPE" = "nv" ]]; then
 
 	DTB_PREFIX=kernel_
 	DTB_SRC="arch/arm64/boot/dts/nvidia"
-	DTB_TARGET="/boot/dtb/"
+	DTB_TARGET="/boot/dtb"
 
 	OVERLAYS_SRC="$DTB_SRC"
 	OVERLAYS_TARGET="/boot"
