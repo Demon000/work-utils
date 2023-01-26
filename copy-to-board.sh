@@ -93,6 +93,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	cp_transfer() {
 		SRC="$1"
 		TARGET="$2"
+		echo "Copy $1 to $2"
 		scp "$SRC" "root@$IP:$TARGET"
 		if [[ $? -ne 0 ]]; then
 			exit 1
@@ -102,6 +103,7 @@ elif [[ "$TRANSFER_MODE" = "sdcard" ]]; then
 	cp_transfer() {
 		SRC="$1"
 		TARGET="$2"
+		echo "Copy $1 to $2"
 		sudo cp "$SRC" "$SDCARD$TARGET"
 		if [[ $? -ne 0 ]]; then
 			exit 1
@@ -138,5 +140,6 @@ if [[ "$TRANSFER_MODE" = "sdcard" ]]; then
 fi
 
 if [[ "$TRANSFER_MODE" = "scp" ]]; then
+	echo "Reboot"
 	ssh "root@$IP" reboot
 fi
