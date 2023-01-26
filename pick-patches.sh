@@ -3,8 +3,8 @@
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
-  case $1 in
-  	-n|--no-pick)
+	case $1 in
+		-n|--no-pick)
 		NO_PICK=1
 		shift
 		;;
@@ -16,7 +16,7 @@ while [[ $# -gt 0 ]]; do
 		POSITIONAL_ARGS+=("$1")
 		shift
 		;;
-  esac
+	esac
 done
 
 set -- "${POSITIONAL_ARGS[@]}"

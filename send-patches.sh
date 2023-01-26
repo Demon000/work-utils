@@ -3,29 +3,29 @@
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
-  case $1 in
-  --rfc)
-		RFC=1
-		shift
-		;;
-	-c|--cover-letter)
-		COVER_LETTER=1
-		shift
-		;;
-	-v|--version)
-		VERSION="$2"
-		shift
-		shift
-		;;
-	-*|--*)
-		echo "Unknown option $1"
-		exit 1
-		;;
-	*)
-		POSITIONAL_ARGS+=("$1")
-		shift
-		;;
-  esac
+	case $1 in
+		--rfc)
+			RFC=1
+			shift
+			;;
+		-c|--cover-letter)
+			COVER_LETTER=1
+			shift
+			;;
+		-v|--version)
+			VERSION="$2"
+			shift
+			shift
+			;;
+		-*|--*)
+			echo "Unknown option $1"
+			exit 1
+			;;
+		*)
+			POSITIONAL_ARGS+=("$1")
+			shift
+			;;
+	esac
 done
 
 set -- "${POSITIONAL_ARGS[@]}"
