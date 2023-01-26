@@ -6,11 +6,37 @@ SDCARD="$HOME/work/rpi-sdcard"
 SDCARD_BOOT="$SDCARD/boot"
 BLKDEV="/dev/mmcblk0p1"
 
+POSITIONAL_ARGS=()
+DTBS=()
+OVERLAYS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+	-d|--dtb)
+		DTBS+=("$2")
+		shift
+		shift
+		;;
+	-o|--overlay)
+		OVERLAYS+=("$2")
+		shift
+		shift
+		;;
+	-*|--*)
+		echo "Unknown option $1"
+		exit 1
+		;;
+	*)
+		POSITIONAL_ARGS+=("$1")
+		shift
+		;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}"
+
 print_usage() {
-	echo "usage: $0 <xil|rpi> <dtb> <scp <ip>>|sdcard>"
-	echo "example: $0 rpi rpi-adxl367.dtbo scp 10.20.30.100"
-	echo "example: $0 xil zynq-zc702-adv7511.dtb scp 10.20.30.100"
-	echo "example: $0 nv tegra194-p3668-0000-p3509-0000.dtb scp 10.20.30.100"
+	echo "usage: $0 <xil|rpi|nv> -d <dtb> -o <overlay> <scp <ip>>|sdcard>"
 	exit 1
 }
 
@@ -19,30 +45,42 @@ if [[ $# -lt 2 ]]; then
 fi
 
 BOARD_TYPE="$1"
-DTB="$2"
-TRANSFER_MODE="$3"
+TRANSFER_MODE="$2"
 
 if [[ "$BOARD_TYPE" = "xil" ]]; then
 	KERNEL_SRC="arch/arm/boot/uImage"
 	KERNEL_TARGET="/boot/uImage"
 
+	DTB_SINGLE=1
 	DTB_SRC="arch/arm/boot/dts"
-	DTB_TARGET="/boot/devicetree.dtb"
+	DTB_TARGET="/boot"
+	DTB_TARGET_NAME="devicetree.dtb"
 elif [[ "$BOARD_TYPE" = "rpi" ]]; then
 	KERNEL_SRC="arch/arm/boot/zImage"
 	KERNEL_TARGET="/boot/kernel7l.img"
 
+	DTB_SRC="arch/arm/boot/dts/"
+	DTB_TARGET="/boot"
+
 	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
 	OVERLAYS_TARGET="/boot/overlays"
-	OVERLAYS="$DTB"
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/Image"
 
+	DTB_PREFIX=kernel_
 	DTB_SRC="arch/arm64/boot/dts/nvidia"
-	DTB_TARGET="/boot/dtb/kernel_$DTB"
+	DTB_TARGET="/boot/dtb/"
+
+	OVERLAYS_SRC="$DTB_SRC"
+	OVERLAYS_TARGET="/boot"
 else
 	print_usage
+fi
+
+if [[ "$DTB_SINGLE" -eq "1" ]] && [[ "${#DTBS[@]}" -ne "1" ]]; then
+	echo "Board does not support multiple DTBs"
+	exit 1
 fi
 
 if [[ "$TRANSFER_MODE" = "scp" ]]; then
@@ -50,7 +88,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		print_usage
 	fi
 
-	IP="$4"
+	IP="$3"
 
 	cp_transfer() {
 		SRC="$1"
@@ -83,13 +121,17 @@ fi
 
 cp_transfer "$KERNEL_SRC" "$KERNEL_TARGET"
 
-for OVERLAY in $OVERLAYS; do
+for OVERLAY in "${OVERLAYS[@]}"; do
 	cp_transfer "$OVERLAYS_SRC"/"$OVERLAY" "$OVERLAYS_TARGET"
 done
 
-if [[ -n "$DTB" ]]; then
-	cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"
-fi
+for DTB in "${DTBS[@]}"; do
+	if [[ -n "$DTB_PREFIX" ]]; then
+		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_PREFIX""$DTB"
+	else
+		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_TARGET_NAME"
+	fi
+done
 
 if [[ "$TRANSFER_MODE" = "sdcard" ]]; then
 	sudo umount "$SDCARD_BOOT"
