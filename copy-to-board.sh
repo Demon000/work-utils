@@ -10,6 +10,7 @@ print_usage() {
     echo "usage: $0 <xil|rpi> <dtb> <scp <ip>>|sdcard>"
     echo "example: $0 rpi rpi-adxl367.dtbo scp 10.20.30.100"
     echo "example: $0 xil zynq-zc702-adv7511.dtb scp 10.20.30.100"
+    echo "example: $0 nv tegra194-p3668-0000-p3509-0000.dtb scp 10.20.30.100"
     exit 1
 }
 
@@ -34,6 +35,12 @@ elif [[ "$BOARD_TYPE" = "rpi" ]]; then
     OVERLAYS_SRC="arch/arm/boot/dts/overlays"
     OVERLAYS_TARGET="/boot/overlays"
     OVERLAYS="$DTB"
+elif [[ "$BOARD_TYPE" = "nv" ]]; then
+    KERNEL_SRC="arch/arm64/boot/Image"
+    KERNEL_TARGET="/boot/Image"
+
+    DTB_SRC="arch/arm64/boot/dts/nvidia"
+    DTB_TARGET="/boot/dtb/kernel_$DTB"
 else
     print_usage
 fi
