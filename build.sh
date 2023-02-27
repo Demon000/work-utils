@@ -47,7 +47,7 @@ if [[ -z "$TARGET" ]]; then
 	fi
 fi
 
-if [[ -n "$MODULES" ]]; then
+if [[ -n "$MODULES_PATH" ]]; then
 	TARGETS+=("modules")
 fi
 
