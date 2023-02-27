@@ -58,6 +58,9 @@ fi
 NPROC=$(nproc)
 
 make -j"$NPROC" ${TARGETS[@]}
+if [[ $? -ne 0 ]]; then
+	exit
+fi
 
 if [[ -n "$MODULES_PATH" ]]; then
 	rm -rf "$MODULES_PATH"
