@@ -2,8 +2,6 @@
 
 #set -o xtrace
 
-SDCARD="$HOME/work/rpi-sdcard"
-SDCARD_BOOT="$SDCARD/boot"
 BLKDEV="/dev/mmcblk0p1"
 
 POSITIONAL_ARGS=()
@@ -116,7 +114,10 @@ else
 fi
 
 if [[ "$TRANSFER_MODE" = "sdcard" ]]; then
+	SDCARD=$(mktemp -d)
 	mkdir -p "$SDCARD"
+
+	SDCARD_BOOT="$SDCARD/boot"
 	mkdir -p "$SDCARD_BOOT"
 
 	sudo mount "$BLKDEV" "$SDCARD_BOOT"
