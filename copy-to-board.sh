@@ -9,7 +9,7 @@ DTBS=()
 OVERLAYS=()
 
 while [[ $# -gt 0 ]]; do
-  case $1 in
+	case $1 in
 	-d|--dtb)
 		DTBS+=("$2")
 		shift

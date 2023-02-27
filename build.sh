@@ -3,12 +3,12 @@
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
-  case $1 in
- 	-d|--dtbs)
+	case $1 in
+	-d|--dtbs)
 		DTBS=1
 		shift
 		;;
- 	-m|--modules)
+	-m|--modules)
 		MODULES=1
 		shift
 		;;
