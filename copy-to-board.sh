@@ -67,6 +67,15 @@ elif [[ "$BOARD_TYPE" = "rpi" ]]; then
 
 	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
 	OVERLAYS_TARGET="/boot/overlays"
+elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+	KERNEL_SRC="arch/arm/boot/Image"
+	KERNEL_TARGET="/boot/kernel8.img"
+
+	DTB_SRC="arch/arm64/boot/dts/"
+	DTB_TARGET="/boot"
+
+	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
+	OVERLAYS_TARGET="/boot/overlays"
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/Image"

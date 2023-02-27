@@ -42,6 +42,8 @@ TARGETS=()
 if [[ -z "$TARGET" ]]; then
 	if [[ "$BOARD_TYPE" = "rpi" ]]; then
 		TARGETS+=("zImage")
+	elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+		TARGETS+=("Image")
 	fi
 fi
 
