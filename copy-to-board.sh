@@ -86,6 +86,7 @@ fi
 if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	if [[ $# -lt 3 ]]; then
 		print_usage
+		exit 1
 	fi
 
 	IP="$3"
