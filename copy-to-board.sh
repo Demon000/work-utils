@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
 		POSITIONAL_ARGS+=("$1")
 		shift
 		;;
-  esac
+	esac
 done
 
 set -- "${POSITIONAL_ARGS[@]}"
