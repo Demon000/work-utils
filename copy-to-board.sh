@@ -20,6 +20,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-m|--modules)
+		MODULES_PATH="$2"
+		shift
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -34,7 +39,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <xil|rpi|nv> [-d <dtb>] [-o <overlay>] <scp <ip>|sdcard>"
+	echo "usage: $0 <xil|rpi|nv> [-d <dtb>] [-o <overlay>] [-m] <scp <ip>|sdcard>"
 	exit 1
 }
 
@@ -152,6 +157,11 @@ done
 
 if [[ -n "$IS_CP" ]]; then
 	sudo umount "$SDCARD_BOOT"
+fi
+
+if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
+	KERNEL_VERSION=$(cat include/config/kernel.release)
+	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/$KERNEL_VERSION"
 fi
 
 echo "Reboot?"

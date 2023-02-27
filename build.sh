@@ -9,7 +9,8 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
 	-m|--modules)
-		MODULES=1
+		MODULES_PATH="$2"
+		shift
 		shift
 		;;
 	-*|--*)
@@ -56,6 +57,8 @@ NPROC=$(nproc)
 
 make -j"$NPROC" ${TARGETS[@]}
 
-if [[ -n "$MODULES" ]]; then
-	make -j"$NPROC" modules_install
+if [[ -n "$MODULES_PATH" ]]; then
+	rm -rf "$MODULES_PATH"
+	mkdir -p "$MODULES_PATH"
+	make -j"$NPROC" INSTALL_MOD_PATH="$MODULES_PATH" modules_install
 fi
