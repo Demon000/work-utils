@@ -145,6 +145,18 @@ if [[ -n "$IS_CP" ]]; then
 	sudo umount "$SDCARD_BOOT"
 fi
 
+echo "Reboot?"
+select yn in "Yes" "No"; do
+	case $yn in
+		Yes)
+			break
+			;;
+		No)
+			exit
+			;;
+	esac
+done
+
 if [[ -n "$IS_SCP" ]]; then
 	echo "Reboot"
 	ssh "root@$IP" reboot
