@@ -52,7 +52,7 @@ if [[ -n "$MODULES_PATH" ]]; then
 fi
 
 if [[ -n "$DTBS" ]]; then
-	TARGETS+=("modules")
+	TARGETS+=("dtbs")
 fi
 
 NPROC=$(nproc)
