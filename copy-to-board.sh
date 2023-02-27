@@ -100,6 +100,10 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 			exit 1
 		fi
 	}
+
+	cmd() {
+		ssh "root@$IP" $@
+	}
 elif [[ "$TRANSFER_MODE" = "sdcard" ]]; then
 	IS_CP=1
 
@@ -111,6 +115,11 @@ elif [[ "$TRANSFER_MODE" = "sdcard" ]]; then
 		if [[ $? -ne 0 ]]; then
 			exit 1
 		fi
+	}
+
+	cmd() {
+		echo "Cannot run command in sdcard mode"
+		exit 1
 	}
 else
 	echo "invalid transfer mode"
@@ -159,5 +168,5 @@ done
 
 if [[ -n "$IS_SCP" ]]; then
 	echo "Reboot"
-	ssh "root@$IP" reboot
+	cmd reboot
 fi
