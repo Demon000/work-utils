@@ -170,7 +170,7 @@ fi
 
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat include/config/kernel.release)
-	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/$KERNEL_VERSION"
+	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
 fi
 
 echo "Reboot?"
