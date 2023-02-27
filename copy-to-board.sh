@@ -87,6 +87,8 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		exit 1
 	fi
 
+	IS_SCP=1
+
 	IP="$3"
 
 	cp_transfer() {
@@ -99,6 +101,8 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		fi
 	}
 elif [[ "$TRANSFER_MODE" = "sdcard" ]]; then
+	IS_CP=1
+
 	cp_transfer() {
 		SRC="$1"
 		TARGET="$2"
@@ -113,7 +117,7 @@ else
 	exit 1
 fi
 
-if [[ "$TRANSFER_MODE" = "sdcard" ]]; then
+if [[ -n "$IS_CP" ]]; then
 	SDCARD=$(mktemp -d)
 	mkdir -p "$SDCARD"
 
@@ -137,11 +141,11 @@ for DTB in "${DTBS[@]}"; do
 	fi
 done
 
-if [[ "$TRANSFER_MODE" = "sdcard" ]]; then
+if [[ -n "$IS_CP" ]]; then
 	sudo umount "$SDCARD_BOOT"
 fi
 
-if [[ "$TRANSFER_MODE" = "scp" ]]; then
+if [[ -n "$IS_SCP" ]]; then
 	echo "Reboot"
 	ssh "root@$IP" reboot
 fi
