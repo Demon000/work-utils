@@ -39,7 +39,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <xil|rpi|nv> [-d <dtb>] [-o <overlay>] [-m] <scp <ip>|sdcard>"
+	echo "usage: $0 <xil|rpi|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>|sdcard>"
 	exit 1
 }
 
