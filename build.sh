@@ -13,6 +13,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-h|--headers)
+		HEADERS_PATH="$2"
+		shift
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -66,4 +71,10 @@ if [[ -n "$MODULES_PATH" ]]; then
 	rm -rf "$MODULES_PATH"
 	mkdir -p "$MODULES_PATH"
 	make -j"$NPROC" INSTALL_MOD_PATH="$MODULES_PATH" modules_install
+fi
+
+if [[ -n "$HEADERS_PATH" ]]; then
+	rm -rf "$HEADERS_PATH"
+	mkdir -p "$HEADERS_PATH"
+	make -j"$NPROC" INSTALL_HDR_PATH="$HEADERS_PATH" headers_install
 fi
