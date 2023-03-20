@@ -32,7 +32,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <rpi> [target]"
+	echo "usage: $0 <rpi|rpi64> [target]"
 	exit 1
 }
 
