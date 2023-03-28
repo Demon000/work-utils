@@ -56,13 +56,31 @@ shift
 TARGETS=("$@")
 O_OPT=()
 
-if [[ -z "$TARGET" ]]; then
+if [[ -z "$TARGETS" ]]; then
+	AUTO_TARGETS="1"
+fi
+
+if [[ -n "$AUTO_TARGETS" ]]; then
 	if [[ "$BOARD_TYPE" = "rpi" ]]; then
 		TARGETS+=("zImage")
 	elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 		TARGETS+=("Image")
 	elif [[ "$BOARD_TYPE" = "nv" ]]; then
 		TARGETS+=("Image")
+	fi
+
+	if [[ -n "$MODULES_PATH" ]]; then
+		TARGETS+=("modules")
+		O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH}")
+	fi
+
+	if [[ -n "$HEADERS_PATH" ]]; then
+		TARGETS+=("headers")
+		O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH}")
+	fi
+
+	if [[ -n "$DTBS" ]]; then
+		TARGETS+=("dtbs")
 	fi
 fi
 
@@ -85,39 +103,27 @@ if [[ -n "$KERNEL_OUT_PATH" ]]; then
 	O_OPT+=(O="${KERNEL_OUT_PATH}")
 fi
 
-if [[ -n "$MODULES_PATH" ]]; then
-	TARGETS+=("modules")
-	O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH}")
-fi
-
-if [[ -n "$HEADERS_PATH" ]]; then
-	TARGETS+=("headers")
-	O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH}")
-fi
-
 O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
-
-if [[ -n "$DTBS" ]]; then
-	TARGETS+=("dtbs")
-fi
 
 NPROC=$(nproc)
 
-echo "Targets: $TARGETS"
+echo "Targets: ${TARGETS[@]}"
 
 make -j"$NPROC" "${O_OPT[@]}" "${TARGETS[@]}"
 if [[ $? -ne 0 ]]; then
 	exit
 fi
 
-if [[ -n "$MODULES_PATH" ]]; then
-	rm -rf "$MODULES_PATH"
-	mkdir -p "$MODULES_PATH"
-	make -j"$NPROC" "${O_OPT[@]}" modules_install
-fi
+if [[ -n "$AUTO_TARGETS" ]]; then
+	if [[ -n "$MODULES_PATH" ]]; then
+		rm -rf "$MODULES_PATH"
+		mkdir -p "$MODULES_PATH"
+		make -j"$NPROC" "${O_OPT[@]}" modules_install
+	fi
 
-if [[ -n "$HEADERS_PATH" ]]; then
-	rm -rf "$HEADERS_PATH"
-	mkdir -p "$HEADERS_PATH"
-	make -j"$NPROC" "${O_OPT[@]}" headers_install
+	if [[ -n "$HEADERS_PATH" ]]; then
+		rm -rf "$HEADERS_PATH"
+		mkdir -p "$HEADERS_PATH"
+		make -j"$NPROC" "${O_OPT[@]}" headers_install
+	fi
 fi
