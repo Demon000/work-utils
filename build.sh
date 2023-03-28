@@ -71,12 +71,14 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 
 	if [[ -n "$MODULES_PATH" ]]; then
 		TARGETS+=("modules")
-		O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH}")
+		MODULES_PATH_ABS=$(realpath "$MODULES_PATH")
+		O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH_ABS}")
 	fi
 
 	if [[ -n "$HEADERS_PATH" ]]; then
 		TARGETS+=("headers")
-		O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH}")
+		HEADERS_PATH_ABS=$(realpath "$HEADERS_PATH")
+		O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH_ABS}")
 	fi
 
 	if [[ -n "$DTBS" ]]; then
