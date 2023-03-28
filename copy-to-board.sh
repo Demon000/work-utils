@@ -15,7 +15,7 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	-o|--overlay)
+	-v|--overlay)
 		OVERLAYS+=("$2")
 		shift
 		shift
