@@ -110,6 +110,7 @@ O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
 NPROC=$(nproc)
 
 echo "Targets: ${TARGETS[@]}"
+echo "Options: ${O_OPT[@]}"
 
 make -j"$NPROC" "${O_OPT[@]}" "${TARGETS[@]}"
 if [[ $? -ne 0 ]]; then
