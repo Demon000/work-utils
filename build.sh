@@ -51,8 +51,9 @@ if [[ $# -lt 1 ]]; then
 fi
 
 BOARD_TYPE="$1"
-TARGET="$2"
-TARGETS=()
+shift
+
+TARGETS=("$@")
 O_OPT=()
 
 if [[ -z "$TARGET" ]]; then
@@ -100,7 +101,9 @@ fi
 
 NPROC=$(nproc)
 
-make -j"$NPROC" "${O_OPT[@]}" ${TARGETS[@]}
+echo "Targets: $TARGETS"
+
+make -j"$NPROC" "${O_OPT[@]}" "${TARGETS[@]}"
 if [[ $? -ne 0 ]]; then
 	exit
 fi
