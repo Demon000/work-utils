@@ -42,7 +42,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <rpi|rpi64> [target]"
+	echo "usage: $0 <rpi|rpi64|nv> [target]"
 	exit 1
 }
 
@@ -60,6 +60,8 @@ if [[ -z "$TARGET" ]]; then
 		TARGETS+=("zImage")
 	elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 		TARGETS+=("Image")
+	elif [[ "$BOARD_TYPE" = "nv" ]]; then
+		TARGETS+=("Image")
 	fi
 fi
 
@@ -69,6 +71,9 @@ if [[ "$BOARD_TYPE" = "rpi" ]]; then
 elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
+elif [[ "$BOARD_TYPE" = "nv" ]]; then
+	O_OPT+=(LOCALVERSION="-tegra")
+	O_OPT+=(ARCH="arm64")
 fi
 
 if [[ -n "$SOURCE_PATH" ]]; then
