@@ -43,6 +43,7 @@ fi
 BOARD_TYPE="$1"
 TARGET="$2"
 TARGETS=()
+O_OPT=()
 
 if [[ -z "$TARGET" ]]; then
 	if [[ "$BOARD_TYPE" = "rpi" ]]; then
@@ -54,6 +55,12 @@ fi
 
 if [[ -n "$MODULES_PATH" ]]; then
 	TARGETS+=("modules")
+	O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH}")
+fi
+
+if [[ -n "$HEADERS_PATH" ]]; then
+	TARGETS+=("headers")
+	O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH}")
 fi
 
 if [[ -n "$DTBS" ]]; then
@@ -70,11 +77,11 @@ fi
 if [[ -n "$MODULES_PATH" ]]; then
 	rm -rf "$MODULES_PATH"
 	mkdir -p "$MODULES_PATH"
-	make -j"$NPROC" INSTALL_MOD_PATH="$MODULES_PATH" modules_install
+	make -j"$NPROC" "${O_OPT[@]}" modules_install
 fi
 
 if [[ -n "$HEADERS_PATH" ]]; then
 	rm -rf "$HEADERS_PATH"
 	mkdir -p "$HEADERS_PATH"
-	make -j"$NPROC" INSTALL_HDR_PATH="$HEADERS_PATH" headers_install
+	make -j"$NPROC" "${O_OPT[@]}" headers_install
 fi
