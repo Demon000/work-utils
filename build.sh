@@ -95,6 +95,8 @@ if [[ -n "$HEADERS_PATH" ]]; then
 	O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH}")
 fi
 
+O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
+
 if [[ -n "$DTBS" ]]; then
 	TARGETS+=("dtbs")
 fi
