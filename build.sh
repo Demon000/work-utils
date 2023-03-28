@@ -96,7 +96,7 @@ elif [[ "$BOARD_TYPE" = "nv" ]]; then
 fi
 
 if [[ -n "$SOURCE_PATH" ]]; then
-	O_OPT+=(-C "${source_dir}")
+	O_OPT+=(-C "${SOURCE_PATH}")
 fi
 
 if [[ -n "$KERNEL_OUT_PATH" ]]; then
