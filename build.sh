@@ -100,7 +100,7 @@ fi
 
 NPROC=$(nproc)
 
-make -j"$NPROC" ${TARGETS[@]}
+make -j"$NPROC" "${O_OPT[@]}" ${TARGETS[@]}
 if [[ $? -ne 0 ]]; then
 	exit
 fi
