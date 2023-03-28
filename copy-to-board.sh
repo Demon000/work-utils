@@ -25,6 +25,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-o|--out)
+		KERNEL_OUT_PATH="$2"
+		shift
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -148,6 +153,12 @@ if [[ -n "$IS_CP" ]]; then
 	mkdir -p "$SDCARD_BOOT"
 
 	sudo mount "$BLKDEV" "$SDCARD_BOOT"
+fi
+
+if [[ -n "$KERNEL_OUT_PATH" ]]; then
+	KERNEL_SRC="$KERNEL_OUT_PATH/$KERNEL_SRC"
+	OVERLAYS_SRC="$KERNEL_OUT_PATH/$OVERLAYS_SRC"
+	DTB_SRC="$KERNEL_OUT_PATH/$DTB_SRC"
 fi
 
 cp_transfer "$KERNEL_SRC" "$KERNEL_TARGET"
