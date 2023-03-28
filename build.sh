@@ -18,6 +18,16 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-s|--source)
+		SOURCE_PATH="$2"
+		shift
+		shift
+		;;
+	-o|--out)
+		KERNEL_OUT_PATH="$2"
+		shift
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -59,6 +69,14 @@ if [[ "$BOARD_TYPE" = "rpi" ]]; then
 elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
+fi
+
+if [[ -n "$SOURCE_PATH" ]]; then
+	O_OPT+=(-C "${source_dir}")
+fi
+
+if [[ -n "$KERNEL_OUT_PATH" ]]; then
+	O_OPT+=(O="${KERNEL_OUT_PATH}")
 fi
 
 if [[ -n "$MODULES_PATH" ]]; then
