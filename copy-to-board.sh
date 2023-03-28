@@ -155,7 +155,10 @@ if [[ -n "$IS_CP" ]]; then
 	sudo mount "$BLKDEV" "$SDCARD_BOOT"
 fi
 
+KERNEL_VERSION_PATH=include/config/kernel.release
+
 if [[ -n "$KERNEL_OUT_PATH" ]]; then
+	KERNEL_VERSION_PATH="$KERNEL_OUT_PATH/$KERNEL_VERSION_PATH"
 	KERNEL_SRC="$KERNEL_OUT_PATH/$KERNEL_SRC"
 	OVERLAYS_SRC="$KERNEL_OUT_PATH/$OVERLAYS_SRC"
 	DTB_SRC="$KERNEL_OUT_PATH/$DTB_SRC"
@@ -180,7 +183,7 @@ if [[ -n "$IS_CP" ]]; then
 fi
 
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
-	KERNEL_VERSION=$(cat include/config/kernel.release)
+	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
 	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
 fi
 
