@@ -53,6 +53,14 @@ if [[ -z "$TARGET" ]]; then
 	fi
 fi
 
+if [[ "$BOARD_TYPE" = "rpi" ]]; then
+	O_OPT+=(ARCH="arm")
+	O_OPT+=(KERNEL="kernel7l")
+elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+	O_OPT+=(ARCH="arm64")
+	O_OPT+=(KERNEL="kernel8")
+fi
+
 if [[ -n "$MODULES_PATH" ]]; then
 	TARGETS+=("modules")
 	O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH}")
