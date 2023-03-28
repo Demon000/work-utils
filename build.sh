@@ -106,13 +106,12 @@ if [[ -n "$KERNEL_OUT_PATH" ]]; then
 fi
 
 O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
-
-NPROC=$(nproc)
+O_OPT+=(-j$(nproc))
 
 echo "Targets: ${TARGETS[@]}"
 echo "Options: ${O_OPT[@]}"
 
-make -j"$NPROC" "${O_OPT[@]}" "${TARGETS[@]}"
+make "${O_OPT[@]}" "${TARGETS[@]}"
 if [[ $? -ne 0 ]]; then
 	exit
 fi
@@ -121,12 +120,12 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 	if [[ -n "$MODULES_PATH" ]]; then
 		rm -rf "$MODULES_PATH"
 		mkdir -p "$MODULES_PATH"
-		make -j"$NPROC" "${O_OPT[@]}" modules_install
+		make "${O_OPT[@]}" modules_install
 	fi
 
 	if [[ -n "$HEADERS_PATH" ]]; then
 		rm -rf "$HEADERS_PATH"
 		mkdir -p "$HEADERS_PATH"
-		make -j"$NPROC" "${O_OPT[@]}" headers_install
+		make "${O_OPT[@]}" headers_install
 	fi
 fi
