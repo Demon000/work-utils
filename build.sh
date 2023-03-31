@@ -73,6 +73,7 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 		TARGETS+=("modules")
 		MODULES_PATH_ABS=$(realpath "$MODULES_PATH")
 		O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH_ABS}")
+		O_OPT+=(INSTALL_MOD_STRIP=1)
 	fi
 
 	if [[ -n "$HEADERS_PATH" ]]; then
