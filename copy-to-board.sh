@@ -187,19 +187,21 @@ if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
 fi
 
-echo "Reboot?"
-select yn in "Yes" "No"; do
-	case $yn in
-		Yes)
-			break
-			;;
-		No)
-			exit
-			;;
-	esac
-done
-
 if [[ -n "$IS_SCP" ]]; then
-	echo "Reboot"
-	cmd reboot
+	echo "Syncing..."
+	cmd sync
+
+	echo "Reboot?"
+	select yn in "Yes" "No"; do
+		case $yn in
+			Yes)
+				echo "Rebooting..."
+				cmd reboot
+				exit
+				;;
+			No)
+				exit
+				;;
+		esac
+	done
 fi
