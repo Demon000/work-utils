@@ -67,6 +67,8 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 		TARGETS+=("Image")
 	elif [[ "$BOARD_TYPE" = "nv" ]]; then
 		TARGETS+=("Image")
+	elif [[ "$BOARD_TYPE" = "arm64" ]]; then
+		TARGETS+=("Image")
 	fi
 
 	if [[ -n "$MODULES_PATH" ]]; then
@@ -95,6 +97,8 @@ elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 	O_OPT+=(KERNEL="kernel8")
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	O_OPT+=(LOCALVERSION="-tegra")
+	O_OPT+=(ARCH="arm64")
+elif [[ "$BOARD_TYPE" = "arm64" ]]; then
 	O_OPT+=(ARCH="arm64")
 fi
 
