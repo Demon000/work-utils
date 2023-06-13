@@ -28,6 +28,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-l|--localversion)
+		KERNEL_LOCALVERSION="$2"
+		shift
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -96,10 +101,16 @@ elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
-	O_OPT+=(LOCALVERSION="-tegra")
+	if [[ -z "$KERNEL_LOCALVERSION" ]]; then
+		KERNEL_LOCALVERSION="-tegra"
+	fi
 	O_OPT+=(ARCH="arm64")
 elif [[ "$BOARD_TYPE" = "arm64" ]]; then
 	O_OPT+=(ARCH="arm64")
+fi
+
+if [[ -n "$KERNEL_LOCALVERSION" ]]; then
+	O_OPT+=(LOCALVERSION="$KERNEL_LOCALVERSION")
 fi
 
 if [[ -n "$SOURCE_PATH" ]]; then
