@@ -7,7 +7,6 @@ BLKDEV="/dev/mmcblk0p1"
 POSITIONAL_ARGS=()
 DTBS=()
 OVERLAYS=()
-REINSTALL_PACKAGES=()
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
@@ -92,7 +91,6 @@ elif [[ "$BOARD_TYPE" = "nv" ]]; then
 
 	OVERLAYS_SRC="$DTB_SRC"
 	OVERLAYS_TARGET="/boot"
-	REINSTALL_PACKAGES+=("nvidia-l4t-display-kernel")
 elif [[ "$BOARD_TYPE" = "tb-rk3399-vendor-u-boot" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/extlinux/Image"
@@ -195,10 +193,6 @@ fi
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
 	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
-
-	for PACKAGE in "${REINSTALL_PACKAGES[@]}"; do
-		cmd "sudo apt-get install --reinstall $PACKAGE"
-	done
 fi
 
 if [[ -n "$IS_SCP" ]]; then
