@@ -121,7 +121,10 @@ if [[ -n "$KERNEL_OUT_PATH" ]]; then
 	O_OPT+=(O="${KERNEL_OUT_PATH}")
 fi
 
-O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
+if [[ -n "$CROSS_COMPILE" ]]; then
+	O_OPT+=(CROSS_COMPILE="$CROSS_COMPILE")
+fi
+
 O_OPT+=(-j$(nproc))
 
 echo "Targets: ${TARGETS[@]}"
