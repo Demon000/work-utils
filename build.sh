@@ -118,8 +118,16 @@ if [[ -n "$SOURCE_PATH" ]]; then
 	O_OPT+=(-C "${SOURCE_PATH}")
 fi
 
+if [[ -z "$SOURCE_PATH" ]]; then
+	SOURCE_PATH="."
+fi
+
 if [[ -n "$KERNEL_OUT_PATH" ]]; then
 	O_OPT+=(O="${KERNEL_OUT_PATH}")
+fi
+
+if [[ -z "$KERNEL_OUT_PATH" ]]; then
+	KERNEL_OUT_PATH="$SOURCE_PATH"
 fi
 
 if [[ -n "$CROSS_COMPILE" ]]; then
@@ -138,11 +146,7 @@ fi
 
 NV_DISPLAY_PATH="../../tegra/kernel-src/nv-kernel-display-driver/NVIDIA-kernel-module-source-TempVersion"
 
-if [[ -z KERNEL_OUT_PATH ]]; then
-	KERNEL_OUT_PATH="."
-fi
-
-KERNEL_SRC_PATH_ABS=$(realpath .)
+KERNEL_SRC_PATH_ABS=$(realpath "$SOURCE_PATH")
 KERNEL_OUT_PATH_ABS=$(realpath "$KERNEL_OUT_PATH")
 
 NV_DISPLAY_O_OPT=(
