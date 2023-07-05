@@ -2,6 +2,24 @@
 
 POSITIONAL_ARGS=()
 
+print_usage() {
+	echo "usage: $0 <board> [options] [target]"
+	echo "board:"
+	echo "	rpi: Raspberry Pi 32bit"
+	echo "	rpi64: Raspberry Pi 64bit"
+	echo "	nv: Nvidia"
+	echo "	arm64: Basic ARM64 build"
+	echo "options:"
+	echo "	-d|--dtbs: build dtbs"
+	echo "	-m|--modules <modules_path>: build dtbs and install them at the given path"
+	echo "	-h|--headers <headers_path>: build headers and install them at the given path"
+	echo "	-s|--source <source_path>: kernel source path, use current directory if not given"
+	echo "	-o|--out <out_path>: kernel output path, use source path if not given"
+	echo "	-l|--localversion <localversion>: kernel local version"
+
+	exit 1
+}
+
 while [[ $# -gt 0 ]]; do
 	case $1 in
 	-d|--dtbs)
@@ -35,6 +53,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 	-*|--*)
 		echo "Unknown option $1"
+		print_usage
 		exit 1
 		;;
 	*)
@@ -45,11 +64,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 set -- "${POSITIONAL_ARGS[@]}"
-
-print_usage() {
-	echo "usage: $0 <rpi|rpi64|nv> [target]"
-	exit 1
-}
 
 if [[ $# -lt 1 ]]; then
 	print_usage
