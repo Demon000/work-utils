@@ -174,7 +174,7 @@ NV_DISPLAY_O_OPT=(
 	"TARGET_ARCH=aarch64"
 )
 
-if [[ -n "BUILD_NV_DISPLAY" ]]; then
+if [[ -n "$BUILD_NV_DISPLAY" ]]; then
 	pushd "$NV_DISPLAY_PATH"
 
 	echo "Nvidia options: ${NV_DISPLAY_O_OPT[@]}"
@@ -194,7 +194,7 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 		make "${O_OPT[@]}" modules_install
 	fi
 
-	if [[ -n "BUILD_NV_DISPLAY" ]]; then
+	if [[ -n "$BUILD_NV_DISPLAY" ]]; then
 		pushd "$NV_DISPLAY_PATH"
 
 		# To get the same output as Nvidia does when installing the display
