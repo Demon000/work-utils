@@ -5,8 +5,9 @@ POSITIONAL_ARGS=()
 print_usage() {
 	echo "usage: $0 <board> [options] [target]"
 	echo "board:"
-	echo "	rpi: Raspberry Pi 32bit"
-	echo "	rpi64: Raspberry Pi 64bit"
+	echo "	rpi3: Raspberry Pi 3 32bit"
+	echo "	rpi4: Raspberry Pi 4 32bit"
+	echo "	rpi4-64: Raspberry Pi 4 64bit"
 	echo "	nv: Nvidia"
 	echo "	arm64: Basic ARM64 build"
 	echo "options:"
@@ -80,9 +81,11 @@ if [[ -z "$TARGETS" ]]; then
 fi
 
 if [[ -n "$AUTO_TARGETS" ]]; then
-	if [[ "$BOARD_TYPE" = "rpi" ]]; then
+	if [[ "$BOARD_TYPE" = "rpi3" ]]; then
 		TARGETS+=("zImage")
-	elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+	elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
+		TARGETS+=("zImage")
+	elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 		TARGETS+=("Image")
 	elif [[ "$BOARD_TYPE" = "nv" ]]; then
 		TARGETS+=("Image")
@@ -109,10 +112,13 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 	fi
 fi
 
-if [[ "$BOARD_TYPE" = "rpi" ]]; then
+if [[ "$BOARD_TYPE" = "rpi3" ]]; then
+	O_OPT+=(ARCH="arm")
+	O_OPT+=(KERNEL="kernel7")
+elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	O_OPT+=(ARCH="arm")
 	O_OPT+=(KERNEL="kernel7l")
-elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
 elif [[ "$BOARD_TYPE" = "nv" ]]; then

@@ -44,7 +44,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <xil|rpi|rpi64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>|sdcard>"
+	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>|sdcard>"
 	exit 1
 }
 
@@ -63,7 +63,16 @@ if [[ "$BOARD_TYPE" = "xil" ]]; then
 	DTB_SRC="arch/arm/boot/dts"
 	DTB_TARGET="/boot"
 	DTB_TARGET_NAME="devicetree.dtb"
-elif [[ "$BOARD_TYPE" = "rpi" ]]; then
+elif [[ "$BOARD_TYPE" = "rpi3" ]]; then
+	KERNEL_SRC="arch/arm/boot/zImage"
+	KERNEL_TARGET="/boot/kernel7.img"
+
+	DTB_SRC="arch/arm/boot/dts/"
+	DTB_TARGET="/boot"
+
+	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
+	OVERLAYS_TARGET="/boot/overlays"
+elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	KERNEL_SRC="arch/arm/boot/zImage"
 	KERNEL_TARGET="/boot/kernel7l.img"
 
@@ -72,7 +81,7 @@ elif [[ "$BOARD_TYPE" = "rpi" ]]; then
 
 	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
 	OVERLAYS_TARGET="/boot/overlays"
-elif [[ "$BOARD_TYPE" = "rpi64" ]]; then
+elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	KERNEL_SRC="arch/arm/boot/Image"
 	KERNEL_TARGET="/boot/kernel8.img"
 
