@@ -44,7 +44,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>|sdcard>"
+	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>>"
 	exit 1
 }
 
@@ -140,36 +140,9 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	cmd() {
 		ssh "root@$IP" $@
 	}
-elif [[ "$TRANSFER_MODE" = "sdcard" ]]; then
-	IS_CP=1
-
-	cp_transfer() {
-		SRC="$1"
-		TARGET="$2"
-		echo "Copy $1 to $2"
-		sudo cp "$SRC" "$SDCARD$TARGET"
-		if [[ $? -ne 0 ]]; then
-			exit 1
-		fi
-	}
-
-	cmd() {
-		echo "Cannot run command in sdcard mode"
-		exit 1
-	}
 else
 	echo "invalid transfer mode"
 	exit 1
-fi
-
-if [[ -n "$IS_CP" ]]; then
-	SDCARD=$(mktemp -d)
-	mkdir -p "$SDCARD"
-
-	SDCARD_BOOT="$SDCARD/boot"
-	mkdir -p "$SDCARD_BOOT"
-
-	sudo mount "$BLKDEV" "$SDCARD_BOOT"
 fi
 
 KERNEL_VERSION_PATH=include/config/kernel.release
@@ -194,10 +167,6 @@ for DTB in "${DTBS[@]}"; do
 		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_TARGET_NAME"
 	fi
 done
-
-if [[ -n "$IS_CP" ]]; then
-	sudo umount "$SDCARD_BOOT"
-fi
 
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
