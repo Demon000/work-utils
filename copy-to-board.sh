@@ -201,7 +201,7 @@ fi
 
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
-	rsync -av --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
+	rsync -av --checksum --omit-dir-times --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
 fi
 
 if [[ -n "$IS_SCP" ]]; then
