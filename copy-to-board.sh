@@ -130,7 +130,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	cp_transfer() {
 		SRC="$1"
 		TARGET="$2"
-		echo "Copy $1 to $2"
+		echo "Copy $SRC to $TARGET"
 		scp "$SRC" "root@$IP:$TARGET"
 		if [[ $? -ne 0 ]]; then
 			exit 1
