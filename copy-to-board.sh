@@ -138,6 +138,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	}
 
 	cmd() {
+		echo "$@"
 		ssh "root@$IP" $@
 	}
 else
