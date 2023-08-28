@@ -44,7 +44,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 print_usage() {
-	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>>"
+	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>|dry>"
 	exit 1
 }
 
@@ -137,9 +137,31 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		fi
 	}
 
+	rsync_transfer() {
+		SRC="$1"
+		TARGET="$2"
+		rsync -av --checksum --omit-dir-times --delete "$SRC" "root@$IP:$TARGET"
+	}
+
 	cmd() {
 		echo "$@"
 		ssh "root@$IP" $@
+	}
+elif [[ "$TRANSFER_MODE" = "dry" ]]; then
+	IS_SCP=1
+
+	cp_transfer() {
+		SRC="$1"
+		TARGET="$2"
+		echo "Copy $SRC to $TARGET"
+	}
+
+	rsync_transfer() {
+		rsync -av --checksum --omit-dir-times --delete --dry-run "$SRC" "root@$IP:$TARGET"
+	}
+
+	cmd() {
+		echo "$@"
 	}
 else
 	echo "invalid transfer mode"
@@ -171,7 +193,7 @@ done
 
 if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
-	rsync -av --checksum --omit-dir-times --delete "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
+	rsync_transfer "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "root@$IP":"/lib/modules/"
 fi
 
 if [[ -n "$IS_SCP" ]]; then
