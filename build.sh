@@ -76,6 +76,7 @@ shift
 IMAGE_TARGET="Image"
 ZIMAGE_TARGET="Image"
 NV_DISPLAY_TARGET="nv_display"
+NV_SUPPLEMENTS_TARGET="nv_supplements"
 MODULES_TARGET="modules"
 HEADERS_TARGET="modules"
 MODULES_INSTALL_TARGET="modules_install"
@@ -179,6 +180,9 @@ do
 		;;
 	"$NV_DISPLAY_TARGET")
 		BUILD_NV_DISPLAY=1
+		;;
+	"$NV_SUPPLEMENTS_TARGET")
+		BUILD_NV_SUPPLEMENTS=1
 		;;
 	"$MODULES_INSTALL_TARGET")
 		INSTALL_MODULES=1
@@ -301,6 +305,60 @@ install_headers() {
 	make "${O_OPT[@]}" "$hdr_path_arg" "$HEADERS_INSTALL_TARGET"
 }
 
+package_supplements() {
+	local supplements_path="$1"
+	shift
+
+	local name="$1"
+	shift
+
+	local subpath="$1"
+	shift
+
+	pushd "$supplements_path"
+
+	tar --owner root --group root -cjf "$name" "$subpath"
+
+	popd
+}
+
+build_nv_supplements() {
+	local supplements_path="../../../kernel/"
+
+	local image_src_path="$KERNEL_OUT_PATH/arch/arm64/boot/Image"
+	local image_dst_path="$supplements_path/Image"
+	cp "$image_src_path" "$image_dst_path"
+
+	local dtb_src_path="$KERNEL_OUT_PATH/arch/arm64/boot/dts/nvidia"
+	local dtb_dst_path="$supplements_path/dtb"
+	mkdir -p "$dtb_dst_path"
+	cp -r "$dtb_src_path"/* "$dtb_dst_path"
+
+	local kernel_supplements_dir_path=$(mktemp -d)
+	local kernel_supplements_name="kernel_supplements.tbz2"
+
+	install_modules "$kernel_supplements_dir_path"
+	package_supplements "$kernel_supplements_dir_path" \
+		"$kernel_supplements_name" "lib/modules"
+
+	cp "$kernel_supplements_dir_path/$kernel_supplements_name" \
+		"$supplements_path/$kernel_supplements_name"
+
+	rm -rf "$kernel_supplements_dir_path"
+
+	local kernel_display_supplements_dir_path=$(mktemp -d)
+	local kernel_display_supplements_name="kernel_display_supplements.tbz2"
+
+	install_nv_display_modules "$kernel_display_supplements_dir_path"
+	package_supplements "$kernel_display_supplements_dir_path" \
+		"$kernel_display_supplements_name" "lib/modules"
+
+	cp "$kernel_display_supplements_dir_path/$kernel_display_supplements_name" \
+		"$supplements_path/$kernel_display_supplements_name"
+
+	rm -rf "$kernel_display_supplements_dir_path"
+}
+
 if [[ -n "$BUILD_MODULES" ]]; then
 	build_modules
 
@@ -326,6 +384,10 @@ fi
 
 if [[ -n "$INSTALL_HEADERS" ]]; then
 	install_headers "$HEADERS_PATH"
+fi
+
+if [[ -n "$BUILD_NV_SUPPLEMENTS" ]]; then
+	build_nv_supplements
 fi
 
 END_TIME=$(date +%s.%N)
