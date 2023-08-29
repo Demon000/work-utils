@@ -73,8 +73,15 @@ fi
 BOARD_TYPE="$1"
 shift
 
+IMAGE_TARGET="Image"
+ZIMAGE_TARGET="Image"
+NV_DISPLAY_TARGET="nv_display"
+MODULES_TARGET="modules"
+HEADERS_TARGET="modules"
+MODULES_INSTALL_TARGET="modules_install"
+HEADERS_INSTALL_TARGET="headers_install"
+
 TARGETS=("$@")
-O_OPT=()
 
 if [[ -z "$TARGETS" ]]; then
 	AUTO_TARGETS="1"
@@ -82,35 +89,38 @@ fi
 
 if [[ -n "$AUTO_TARGETS" ]]; then
 	if [[ "$BOARD_TYPE" = "rpi3" ]]; then
-		TARGETS+=("zImage")
+		TARGETS+=("$ZIMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
-		TARGETS+=("zImage")
+		TARGETS+=("$ZIMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
-		TARGETS+=("Image")
+		TARGETS+=("$IMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "nv" ]]; then
-		TARGETS+=("Image")
-		BUILD_NV_DISPLAY=1
+		TARGETS+=("$IMAGE_TARGET")
+		TARGETS+=("$NV_DISPLAY_TARGET")
+
+		if [[ -z "$KERNEL_LOCALVERSION" ]]; then
+			KERNEL_LOCALVERSION="-tegra"
+		fi
 	elif [[ "$BOARD_TYPE" = "arm64" ]]; then
-		TARGETS+=("Image")
+		TARGETS+=("$IMAGE_TARGET")
 	fi
 
 	if [[ -n "$MODULES_PATH" ]]; then
-		TARGETS+=("modules")
-		MODULES_PATH_ABS=$(realpath "$MODULES_PATH")
-		O_OPT+=(INSTALL_MOD_PATH="${MODULES_PATH_ABS}")
-		O_OPT+=(INSTALL_MOD_STRIP=1)
+		TARGETS+=("$MODULES_TARGET")
+		TARGETS+=("$MODULES_INSTALL_TARGET")
 	fi
 
 	if [[ -n "$HEADERS_PATH" ]]; then
-		TARGETS+=("headers")
-		HEADERS_PATH_ABS=$(realpath "$HEADERS_PATH")
-		O_OPT+=(INSTALL_HDR_PATH="${HEADERS_PATH_ABS}")
+		TARGETS+=("$HEADERS_TARGET")
+		TARGETS+=("$HEADERS_INSTALL_TARGET")
 	fi
 
 	if [[ -n "$DTBS" ]]; then
 		TARGETS+=("dtbs")
 	fi
 fi
+
+O_OPT=()
 
 if [[ "$BOARD_TYPE" = "rpi3" ]]; then
 	O_OPT+=(ARCH="arm")
@@ -122,9 +132,6 @@ elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
-	if [[ -z "$KERNEL_LOCALVERSION" ]]; then
-		KERNEL_LOCALVERSION="-tegra"
-	fi
 	O_OPT+=(ARCH="arm64")
 elif [[ "$BOARD_TYPE" = "arm64" ]]; then
 	O_OPT+=(ARCH="arm64")
@@ -159,9 +166,41 @@ O_OPT+=(-j$(nproc))
 echo "Targets: ${TARGETS[@]}"
 echo "Options: ${O_OPT[@]}"
 
-make "${O_OPT[@]}" "${TARGETS[@]}"
-if [[ $? -ne 0 ]]; then
-	exit
+INITIAL_TARGETS=()
+
+for TARGET in "${TARGETS[@]}"
+do
+	case "$TARGET" in
+	"$MODULES_TARGET")
+		BUILD_MODULES=1
+		;;
+	"$HEADERS_TARGET")
+		BUILD_HEADERS=1
+		;;
+	"$NV_DISPLAY_TARGET")
+		BUILD_NV_DISPLAY=1
+		;;
+	"$MODULES_INSTALL_TARGET")
+		INSTALL_MODULES=1
+		;;
+	"$HEADERS_INSTALL_TARGET")
+		INSTALL_HEADERS=1
+		;;
+	*)
+		INITIAL_TARGETS+=("$TARGET")
+		;;
+	esac
+done
+
+TARGETS=("${INITIAL_TARGETS[@]}")
+
+START_TIME=$(date +%s.%N)
+
+if [ ${#TARGETS[@]} -ne 0 ]; then
+	make "${O_OPT[@]}" "${TARGETS[@]}"
+	if [[ $? -ne 0 ]]; then
+		exit
+	fi
 fi
 
 NV_DISPLAY_PATH="../../tegra/kernel-src/nv-kernel-display-driver/NVIDIA-kernel-module-source-TempVersion"
@@ -180,40 +219,116 @@ NV_DISPLAY_O_OPT=(
 	"TARGET_ARCH=aarch64"
 )
 
-if [[ -n "$BUILD_NV_DISPLAY" ]]; then
-	pushd "$NV_DISPLAY_PATH"
+build_modules() {
+	local dir_path="$1"
+	shift
 
-	echo "Nvidia options: ${NV_DISPLAY_O_OPT[@]}"
+	local opts=("$@")
 
-	make "${O_OPT[@]}" "${NV_DISPLAY_O_OPT[@]}" modules
-	if [[ $? -ne 0 ]]; then
-		exit 1
+	if [[ -n "$dir_path" ]]; then
+		pushd "$dir_path"
 	fi
 
-	popd
-fi
+	make "${O_OPT[@]}" "${opts[@]}" "$MODULES_TARGET"
 
-if [[ -n "$AUTO_TARGETS" ]]; then
-	if [[ -n "$MODULES_PATH" ]]; then
-		rm -rf "$MODULES_PATH"
-		mkdir -p "$MODULES_PATH"
-		make "${O_OPT[@]}" modules_install
+	if [[ -n "$dir_path" ]]; then
+		popd
 	fi
+}
+
+build_nv_display_modules() {
+	build_modules "$NV_DISPLAY_PATH" "${NV_DISPLAY_O_OPT[@]}"
+}
+
+build_headers() {
+	make "${O_OPT[@]}" "$HEADERS_TARGET"
+}
+
+install_modules() {
+	local modules_path="$1"
+	shift
+
+	local dir_path="$1"
+	shift
+
+	local opts=("$@")
+
+	local mod_path_arg
+	local mod_strip_arg
+
+	if [[ -n "$modules_path" ]]; then
+		rm -rf "$modules_path"
+		mkdir -p "$modules_path"
+		modules_path_abs=$(realpath "$modules_path")
+		mod_path_arg="INSTALL_MOD_PATH=${modules_path_abs}"
+		mod_strip_arg="INSTALL_MOD_STRIP=1"
+	fi
+
+	if [[ -n "$dir_path" ]]; then
+		pushd "$dir_path"
+	fi
+
+	make "${O_OPT[@]}" "${opts[@]}" "$mod_path_arg" "$mod_strip_arg" "$MODULES_INSTALL_TARGET"
+
+	if [[ -n "$dir_path" ]]; then
+		popd
+	fi
+}
+
+install_nv_display_modules() {
+	local modules_path="$1"
+	shift
+
+	# To get the same output as Nvidia does when installing the display
+	# module, set INSTALL_MOD_DIR line in kernel-open/Makefile to
+	# KBUILD_PARAMS += INSTALL_MOD_DIR=extra/opensrc-disp
+	install_modules "$modules_path" "$NV_DISPLAY_PATH" "${NV_DISPLAY_O_OPT[@]}"
+}
+
+install_headers() {
+	local headers_path="$1"
+	shift
+
+	local hdr_path_arg
+
+	if [[ -n "$headers_path" ]]; then
+		rm -rf "$headers_path"
+		mkdir -p "$headers_path"
+		headers_path_abs=$(realpath "$headers_path")
+		hdr_path_arg="INSTALL_HDR_PATH=${headers_path_abs}"
+	fi
+
+	make "${O_OPT[@]}" "$hdr_path_arg" "$HEADERS_INSTALL_TARGET"
+}
+
+if [[ -n "$BUILD_MODULES" ]]; then
+	build_modules
 
 	if [[ -n "$BUILD_NV_DISPLAY" ]]; then
-		pushd "$NV_DISPLAY_PATH"
+		build_nv_display_modules
+	fi
+fi
 
+if [[ -n "$BUILD_HEADERS" ]]; then
+	build_headers
+fi
+
+if [[ -n "$INSTALL_MODULES" ]]; then
+	install_modules "$MODULES_PATH"
+
+	if [[ -n "$BUILD_NV_DISPLAY" ]]; then
 		# To get the same output as Nvidia does when installing the display
 		# module, set INSTALL_MOD_DIR line in kernel-open/Makefile to
 		# KBUILD_PARAMS += INSTALL_MOD_DIR=extra/opensrc-disp
-		make "${O_OPT[@]}" "${NV_DISPLAY_O_OPT[@]}" modules_install
-
-		popd
-	fi
-
-	if [[ -n "$HEADERS_PATH" ]]; then
-		rm -rf "$HEADERS_PATH"
-		mkdir -p "$HEADERS_PATH"
-		make "${O_OPT[@]}" headers_install
+		install_nv_display_modules "$MODULES_PATH"
 	fi
 fi
+
+if [[ -n "$INSTALL_HEADERS" ]]; then
+	install_headers "$HEADERS_PATH"
+fi
+
+END_TIME=$(date +%s.%N)
+RUN_TIME=$(echo "$END_TIME - $START_TIME" | bc -l)
+
+echo "Run time: $RUN_TIME"
