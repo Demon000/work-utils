@@ -78,7 +78,7 @@ ZIMAGE_TARGET="Image"
 NV_DISPLAY_TARGET="nv_display"
 NV_SUPPLEMENTS_TARGET="nv_supplements"
 MODULES_TARGET="modules"
-HEADERS_TARGET="modules"
+HEADERS_TARGET="headers"
 MODULES_INSTALL_TARGET="modules_install"
 HEADERS_INSTALL_TARGET="headers_install"
 
