@@ -74,7 +74,7 @@ BOARD_TYPE="$1"
 shift
 
 IMAGE_TARGET="Image"
-ZIMAGE_TARGET="Image"
+ZIMAGE_TARGET="zImage"
 NV_DISPLAY_TARGET="nv_display"
 NV_SUPPLEMENTS_TARGET="nv_supplements"
 MODULES_TARGET="modules"
