@@ -136,8 +136,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	}
 
 	cmd() {
-		echo "$@"
-		ssh "root@$IP" $@
+		ssh "root@$IP" "$1"
 	}
 
 	rsync_transfer() {
