@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#set -o xtrace
-
-BLKDEV="/dev/mmcblk0p1"
-
 POSITIONAL_ARGS=()
 DTBS=()
 OVERLAYS=()
