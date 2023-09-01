@@ -75,6 +75,7 @@ shift
 
 IMAGE_TARGET="Image"
 ZIMAGE_TARGET="zImage"
+DTBS_TARGET="dtbs"
 NV_DISPLAY_TARGET="nv_display"
 NV_SUPPLEMENTS_TARGET="nv_supplements"
 MODULES_TARGET="modules"
@@ -117,7 +118,7 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 	fi
 
 	if [[ -n "$DTBS" ]]; then
-		TARGETS+=("dtbs")
+		TARGETS+=("$DTBS_TARGET")
 	fi
 fi
 
