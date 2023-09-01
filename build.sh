@@ -252,6 +252,9 @@ install_modules() {
 	local modules_path="$1"
 	shift
 
+	local clean_dir="$1"
+	shift
+
 	local dir_path="$1"
 	shift
 
@@ -261,7 +264,9 @@ install_modules() {
 	local mod_strip_arg
 
 	if [[ -n "$modules_path" ]]; then
-		rm -rf "$modules_path"
+		if [[ -n "$clean_dir" ]]; then
+			rm -rf "$modules_path"
+		fi
 		mkdir -p "$modules_path"
 		modules_path_abs=$(realpath "$modules_path")
 		mod_path_arg="INSTALL_MOD_PATH=${modules_path_abs}"
@@ -279,6 +284,13 @@ install_modules() {
 	fi
 }
 
+install_kernel_modules() {
+	local modules_path="$1"
+	shift
+
+	install_modules "$modules_path" 1
+}
+
 install_nv_display_modules() {
 	local modules_path="$1"
 	shift
@@ -286,7 +298,7 @@ install_nv_display_modules() {
 	# To get the same output as Nvidia does when installing the display
 	# module, set INSTALL_MOD_DIR line in kernel-open/Makefile to
 	# KBUILD_PARAMS += INSTALL_MOD_DIR=extra/opensrc-disp
-	install_modules "$modules_path" "$NV_DISPLAY_PATH" "${NV_DISPLAY_O_OPT[@]}"
+	install_modules "$modules_path" "" "$NV_DISPLAY_PATH" "${NV_DISPLAY_O_OPT[@]}"
 }
 
 install_headers() {
@@ -337,7 +349,7 @@ build_nv_supplements() {
 	local kernel_supplements_dir_path=$(mktemp -d)
 	local kernel_supplements_name="kernel_supplements.tbz2"
 
-	install_modules "$kernel_supplements_dir_path"
+	install_kernel_modules "$kernel_supplements_dir_path"
 	package_supplements "$kernel_supplements_dir_path" \
 		"$kernel_supplements_name" "lib/modules"
 
@@ -372,7 +384,7 @@ if [[ -n "$BUILD_HEADERS" ]]; then
 fi
 
 if [[ -n "$INSTALL_MODULES" ]]; then
-	install_modules "$MODULES_PATH"
+	install_kernel_modules "$MODULES_PATH"
 
 	if [[ -n "$BUILD_NV_DISPLAY" ]]; then
 		# To get the same output as Nvidia does when installing the display
