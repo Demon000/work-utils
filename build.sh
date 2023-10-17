@@ -235,6 +235,9 @@ build_modules() {
 	fi
 
 	make "${O_OPT[@]}" "${opts[@]}" "$MODULES_TARGET"
+	if [[ $? -ne 0 ]]; then
+		exit
+	fi
 
 	if [[ -n "$dir_path" ]]; then
 		popd
@@ -247,6 +250,9 @@ build_nv_display_modules() {
 
 build_headers() {
 	make "${O_OPT[@]}" "$HEADERS_TARGET"
+	if [[ $? -ne 0 ]]; then
+		exit
+	fi
 }
 
 install_modules() {
@@ -279,6 +285,9 @@ install_modules() {
 	fi
 
 	make "${O_OPT[@]}" "${opts[@]}" "$mod_path_arg" "$mod_strip_arg" "$MODULES_INSTALL_TARGET"
+	if [[ $? -ne 0 ]]; then
+		exit
+	fi
 
 	if [[ -n "$dir_path" ]]; then
 		popd
@@ -316,6 +325,9 @@ install_headers() {
 	fi
 
 	make "${O_OPT[@]}" "$hdr_path_arg" "$HEADERS_INSTALL_TARGET"
+	if [[ $? -ne 0 ]]; then
+		exit
+	fi
 }
 
 package_supplements() {
