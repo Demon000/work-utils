@@ -98,6 +98,14 @@ elif [[ "$BOARD_TYPE" = "nv" ]]; then
 
 	OVERLAYS_SRC="$DTB_SRC"
 	OVERLAYS_TARGET="/boot"
+elif [[ "$BOARD_TYPE" = "imx8mp-hummingboard-pulse" ]]; then
+	KERNEL_SRC="arch/arm64/boot/Image"
+	KERNEL_TARGET="/boot/Image"
+
+	DTB_SINGLE=1
+	DTB_SRC="arch/arm64/boot/dts/freescale"
+	DTB_TARGET="/boot"
+	DTB_TARGET_NAME="imx8mp-hummingboard-pulse.dtb"
 elif [[ "$BOARD_TYPE" = "tb-rk3399-vendor-u-boot" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/extlinux/Image"
