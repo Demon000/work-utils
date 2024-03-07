@@ -8,6 +8,7 @@ print_usage() {
 	echo "	rpi3: Raspberry Pi 3 32bit"
 	echo "	rpi4: Raspberry Pi 4 32bit"
 	echo "	rpi4-64: Raspberry Pi 4 64bit"
+	echo "  rpi5: Raspberry Pi 5"
 	echo "	nv: Nvidia"
 	echo "	arm64: Basic ARM64 build"
 	echo "options:"
@@ -96,6 +97,8 @@ if [[ -n "$AUTO_TARGETS" ]]; then
 		TARGETS+=("$ZIMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 		TARGETS+=("$IMAGE_TARGET")
+	elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
+		TARGETS+=("$IMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "nv" ]]; then
 		TARGETS+=("$IMAGE_TARGET")
 		TARGETS+=("$NV_DISPLAY_TARGET")
@@ -133,6 +136,9 @@ elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
+elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
+	O_OPT+=(ARCH="arm64")
+	O_OPT+=(KERNEL="kernel_2712")
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	O_OPT+=(ARCH="arm64")
 elif [[ "$BOARD_TYPE" = "arm64" ]]; then
