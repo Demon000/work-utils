@@ -87,10 +87,6 @@ HEADERS_INSTALL_TARGET="headers_install"
 TARGETS=("$@")
 
 if [[ -z "$TARGETS" ]]; then
-	AUTO_TARGETS="1"
-fi
-
-if [[ -n "$AUTO_TARGETS" ]]; then
 	if [[ "$BOARD_TYPE" = "rpi3" ]]; then
 		TARGETS+=("$ZIMAGE_TARGET")
 	elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
