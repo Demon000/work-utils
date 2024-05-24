@@ -26,6 +26,10 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	--nv-initrd)
+		NV_INIT_RD=1
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -195,6 +199,10 @@ if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 fi
 
 if [[ -n "$IS_SCP" ]]; then
+	if [[ -n "$NV_INIT_RD" ]]; then
+		cmd nv-update-initrd
+	fi
+
 	echo "Syncing..."
 	cmd sync
 
