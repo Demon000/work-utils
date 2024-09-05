@@ -30,6 +30,10 @@ while [[ $# -gt 0 ]]; do
 		NV_INIT_RD=1
 		shift
 		;;
+	--overlays)
+		ALL_OVERLAYS=1
+		shift
+		;;
 	-*|--*)
 		echo "Unknown option $1"
 		exit 1
@@ -162,6 +166,19 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		TARGET="$2"
 		rsync -av --checksum --omit-dir-times --delete "$SRC" "root@$IP":"$TARGET"
 	}
+
+	rsync_transfer_file_arr() {
+		SRC="$1"
+		shift
+		TARGET="$1"
+		shift
+		PATHS=("$@")
+
+		RSYNC_TMP_FILE=$(mktemp)
+		printf "%s\n" "${PATHS[@]}" > "$RSYNC_TMP_FILE"
+		rsync -av --checksum --omit-dir-times --files-from="$RSYNC_TMP_FILE" "$SRC" "root@$IP":"$TARGET"
+		rm "$RSYNC_TMP_FILE"
+	}
 else
 	echo "invalid transfer mode"
 	exit 1
@@ -179,8 +196,22 @@ DTB_SRC="$KERNEL_OUT_PATH/$DTB_SRC"
 cp_transfer "$KERNEL_SRC" "$KERNEL_TARGET"
 
 for OVERLAY in "${OVERLAYS[@]}"; do
-	cp_transfer "$OVERLAYS_SRC"/"$OVERLAY" "$OVERLAYS_TARGET"
+	if [[ ! -f "$OVERLAYS_SRC/$OVERLAY" ]]; then
+		echo "Failed to find $OVERLAY in $OVERLAYS_SRC"
+	fi
 done
+
+if [[ -n "$ALL_OVERLAYS" ]]; then
+	pushd "$OVERLAYS_SRC"
+	while IFS= read -d $'\0' -r OVERLAY; do
+		OVERLAYS=("${OVERLAYS[@]}" "$OVERLAY")
+	done < <(find -name "*.dtbo" -print0)
+	popd
+fi
+
+if [[ ${#OVERLAYS[@]} -ne 0 ]]; then
+	rsync_transfer_file_arr "$OVERLAYS_SRC" "$OVERLAYS_TARGET" "${OVERLAYS[@]}"
+fi
 
 for DTB in "${DTBS[@]}"; do
 	if [[ -z "$DTB_TARGET_NAME" ]]; then
