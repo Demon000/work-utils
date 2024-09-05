@@ -98,31 +98,31 @@ elif [[ "$BOARD_TYPE" = "rpi3" ]]; then
 	OVERLAYS_TARGET="/boot/overlays"
 elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	KERNEL_SRC="arch/arm/boot/zImage"
-	KERNEL_TARGET="/boot/kernel7l.img"
+	KERNEL_TARGET="/boot/firmware/kernel7l.img"
 
 	DTB_SRC="arch/arm/boot/dts/"
-	DTB_TARGET="/boot"
+	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
-	OVERLAYS_TARGET="/boot/overlays"
+	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
-	KERNEL_SRC="arch/arm/boot/Image"
-	KERNEL_TARGET="/boot/kernel8.img"
+	KERNEL_SRC="arch/arm64/boot/Image"
+	KERNEL_TARGET="/boot/firmware/kernel8.img"
 
 	DTB_SRC="arch/arm64/boot/dts/"
-	DTB_TARGET="/boot"
+	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
-	OVERLAYS_TARGET="/boot/overlays"
+	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
-	KERNEL_SRC="arch/arm/boot/Image"
-	KERNEL_TARGET="/boot/kernel_2712.img"
+	KERNEL_SRC="arch/arm64/boot/Image"
+	KERNEL_TARGET="/boot/firmware/kernel_2712.img"
 
 	DTB_SRC="arch/arm64/boot/dts/"
-	DTB_TARGET="/boot"
+	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
-	OVERLAYS_TARGET="/boot/overlays"
+	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/Image"
