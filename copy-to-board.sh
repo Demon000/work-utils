@@ -47,8 +47,27 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}"
 
+usage="usage: $0 <board> [options] <scp <ip>>
+board:
+	xil: Xilinx board
+	nv: Nvidia Tegra board
+	rpi3: Raspberry Pi 3 (32-bit)
+	rpi4: Raspberry Pi 4 (32-bit)
+	rpi4-64: Raspberry Pi 4 (64-bit)
+	rpi5: Raspberry Pi 5 (64-bit)
+	imx8mp-hummingboard-pulse: IMX8MP Hummingboard Pulse
+	tb-rk3399-vendor-u-boot: Toybrick RK3399 ProX
+options:
+	-d|--dtb <dtb>: copy the specified dtb
+	-v|--overlay <overlay>: copy the specified overlay
+	--all-overlays: copy all overlays
+	-o|--out <kernel_out_path>: specify kernel out path
+	-m|--modules <modules_path>: specify modules out path
+	--nv-initrd: update nvidia init.rd
+"
+
 print_usage() {
-	echo "usage: $0 <xil|rpi3|rpi4|rpi4-64|nv> [-d <dtb>] [-o <overlay>] [-m <modules_path>] <scp <ip>>"
+	echo "$usage"
 	exit 1
 }
 
