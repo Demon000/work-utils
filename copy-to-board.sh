@@ -61,7 +61,6 @@ if [[ "$BOARD_TYPE" = "xil" ]]; then
 	KERNEL_SRC="arch/arm/boot/uImage"
 	KERNEL_TARGET="/boot/uImage"
 
-	DTB_SINGLE=1
 	DTB_SRC="arch/arm/boot/dts"
 	DTB_TARGET="/boot"
 	DTB_TARGET_NAME="devicetree.dtb"
@@ -115,7 +114,6 @@ elif [[ "$BOARD_TYPE" = "imx8mp-hummingboard-pulse" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/Image"
 
-	DTB_SINGLE=1
 	DTB_SRC="arch/arm64/boot/dts/freescale"
 	DTB_TARGET="/boot"
 	DTB_TARGET_NAME="imx8mp-hummingboard-pulse.dtb"
@@ -123,7 +121,6 @@ elif [[ "$BOARD_TYPE" = "tb-rk3399-vendor-u-boot" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/extlinux/Image"
 
-	DTB_SINGLE=1
 	DTB_SRC="arch/arm64/boot/dts/rockchip"
 	DTB_TARGET="/boot/extlinux"
 	DTB_TARGET_NAME="toybrick.dtb"
@@ -131,7 +128,7 @@ else
 	print_usage
 fi
 
-if [[ "$DTB_SINGLE" -eq "1" ]] && [[ "${#DTBS[@]}" -ne "1" ]]; then
+if [[ -n "$DTB_TARGET_NAME" ]] && [[ "${#DTBS[@]}" -ne "1" ]]; then
 	echo "Board does not support multiple DTBs"
 	exit 1
 fi
@@ -186,7 +183,7 @@ for OVERLAY in "${OVERLAYS[@]}"; do
 done
 
 for DTB in "${DTBS[@]}"; do
-	if [[ -n "$DTB_PREFIX" ]]; then
+	if [[ -z "$DTB_TARGET_NAME" ]]; then
 		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_PREFIX""$DTB"
 	else
 		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_TARGET_NAME"
