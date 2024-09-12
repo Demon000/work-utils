@@ -100,7 +100,7 @@ elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	KERNEL_SRC="arch/arm/boot/zImage"
 	KERNEL_TARGET="/boot/firmware/kernel7l.img"
 
-	DTB_SRC="arch/arm/boot/dts/"
+	DTB_SRC="arch/arm/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
@@ -109,7 +109,7 @@ elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/firmware/kernel8.img"
 
-	DTB_SRC="arch/arm64/boot/dts/"
+	DTB_SRC="arch/arm64/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
@@ -118,7 +118,7 @@ elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/firmware/kernel_2712.img"
 
-	DTB_SRC="arch/arm64/boot/dts/"
+	DTB_SRC="arch/arm64/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
 	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
