@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
 		NV_INIT_RD=1
 		shift
 		;;
-	--overlays)
+	--all-overlays)
 		ALL_OVERLAYS=1
 		shift
 		;;
