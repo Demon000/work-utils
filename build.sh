@@ -84,6 +84,19 @@ HEADERS_TARGET="headers"
 MODULES_INSTALL_TARGET="modules_install"
 HEADERS_INSTALL_TARGET="headers_install"
 
+if [[ -z "$SOURCE_PATH" ]]; then
+	SOURCE_PATH="."
+fi
+
+SOURCE_PATH_ABS=$(realpath "$SOURCE_PATH")
+SOURCE_PATH_NAME=$(basename "$SOURCE_PATH_ABS")
+if ! [[ -v KERNEL_OUT_PATH ]]; then
+	KERNEL_OUT_PATH="$SOURCE_PATH/../kernel_out-$SOURCE_PATH_NAME"
+fi
+if ! [[ -v MODULES_PATH ]]; then
+	MODULES_PATH="$SOURCE_PATH/../modules_out-$SOURCE_PATH_NAME"
+fi
+
 TARGETS=("$@")
 
 if [[ -z "$TARGETS" ]]; then
@@ -145,12 +158,8 @@ if [[ -n "$KERNEL_LOCALVERSION" ]]; then
 	O_OPT+=(LOCALVERSION="$KERNEL_LOCALVERSION")
 fi
 
-if [[ -n "$SOURCE_PATH" ]]; then
+if [[ -n "$SOURCE_PATH" ]] && [[ "$SOURCE_PATH" != "." ]]; then
 	O_OPT+=(-C "${SOURCE_PATH}")
-fi
-
-if [[ -z "$SOURCE_PATH" ]]; then
-	SOURCE_PATH="."
 fi
 
 if [[ -n "$KERNEL_OUT_PATH" ]]; then

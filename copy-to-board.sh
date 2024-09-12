@@ -203,8 +203,17 @@ else
 	exit 1
 fi
 
-if [[ -z "$KERNEL_OUT_PATH" ]]; then
-	KERNEL_OUT_PATH="$SOURCE_PATH"
+if [[ -z "$SOURCE_PATH" ]]; then
+	SOURCE_PATH="."
+fi
+
+SOURCE_PATH_ABS=$(realpath "$SOURCE_PATH")
+SOURCE_PATH_NAME=$(basename "$SOURCE_PATH_ABS")
+if ! [[ -v KERNEL_OUT_PATH ]]; then
+	KERNEL_OUT_PATH="$SOURCE_PATH/../kernel_out-$SOURCE_PATH_NAME"
+fi
+if ! [[ -v MODULES_PATH ]]; then
+	MODULES_PATH="$SOURCE_PATH/../modules_out-$SOURCE_PATH_NAME"
 fi
 
 KERNEL_VERSION_PATH="$KERNEL_OUT_PATH/$KERNEL_VERSION_PATH"
