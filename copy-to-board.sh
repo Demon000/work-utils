@@ -3,6 +3,7 @@
 POSITIONAL_ARGS=()
 DTBS=()
 OVERLAYS=()
+OVERLAY_REL_PATHS=()
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
@@ -94,7 +95,7 @@ elif [[ "$BOARD_TYPE" = "rpi3" ]]; then
 	DTB_SRC="arch/arm/boot/dts/"
 	DTB_TARGET="/boot"
 
-	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
+	OVERLAYS_SRC="arch/arm/boot/dts"
 	OVERLAYS_TARGET="/boot/overlays"
 elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	KERNEL_SRC="arch/arm/boot/zImage"
@@ -103,7 +104,7 @@ elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	DTB_SRC="arch/arm/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
-	OVERLAYS_SRC="arch/arm/boot/dts/overlays"
+	OVERLAYS_SRC="arch/arm/boot/dts"
 	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
@@ -112,7 +113,7 @@ elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	DTB_SRC="arch/arm64/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
-	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
+	OVERLAYS_SRC="arch/arm64/boot/dts"
 	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
@@ -121,7 +122,7 @@ elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
 	DTB_SRC="arch/arm64/boot/dts/broadcom"
 	DTB_TARGET="/boot/firmware"
 
-	OVERLAYS_SRC="arch/arm64/boot/dts/overlays"
+	OVERLAYS_SRC="arch/arm64/boot/dts"
 	OVERLAYS_TARGET="/boot/firmware/overlays"
 elif [[ "$BOARD_TYPE" = "nv" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
@@ -195,7 +196,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 
 		RSYNC_TMP_FILE=$(mktemp)
 		printf "%s\n" "${PATHS[@]}" > "$RSYNC_TMP_FILE"
-		rsync -av --checksum --omit-dir-times --files-from="$RSYNC_TMP_FILE" "$SRC" "root@$IP":"$TARGET"
+		rsync -av --checksum --omit-dir-times --files-from="$RSYNC_TMP_FILE" --no-relative --no-owner --no-group "$SRC" "root@$IP":"$TARGET"
 		rm "$RSYNC_TMP_FILE"
 	}
 else
@@ -223,22 +224,32 @@ DTB_SRC="$KERNEL_OUT_PATH/$DTB_SRC"
 
 cp_transfer "$KERNEL_SRC" "$KERNEL_TARGET"
 
-for OVERLAY in "${OVERLAYS[@]}"; do
-	if [[ ! -f "$OVERLAYS_SRC/$OVERLAY" ]]; then
-		echo "Failed to find $OVERLAY in $OVERLAYS_SRC"
-	fi
-done
+pushd "$OVERLAYS_SRC" > /dev/null
+if [[ ${#OVERLAYS[@]} -ne 0 ]]; then
+	echo "Copy ${OVERLAYS[@]} from $OVERLAYS_SRC"
 
-if [[ -n "$ALL_OVERLAYS" ]]; then
-	pushd "$OVERLAYS_SRC"
-	while IFS= read -d $'\0' -r OVERLAY; do
-		OVERLAYS=("${OVERLAYS[@]}" "$OVERLAY")
-	done < <(find -name "*.dtbo" -print0)
-	popd
+	for OVERLAY in "${OVERLAYS[@]}"; do
+		OVERLAY_REL_PATH=$(find -name "$OVERLAY")
+		if [[ -z "$OVERLAY_REL_PATH" ]]; then
+			echo "Failed to find $OVERLAY in $OVERLAYS_SRC"
+			continue
+		fi
+
+		OVERLAY_REL_PATHS+=("$OVERLAY_REL_PATH")
+	done
 fi
 
-if [[ ${#OVERLAYS[@]} -ne 0 ]]; then
-	rsync_transfer_file_arr "$OVERLAYS_SRC" "$OVERLAYS_TARGET" "${OVERLAYS[@]}"
+if [[ -n "$ALL_OVERLAYS" ]]; then
+	echo "Copy all overlays from $OVERLAYS_SRC"
+
+	while IFS= read -d $'\0' -r OVERLAY; do
+		OVERLAY_REL_PATHS+=("$OVERLAY")
+	done < <(find -name "*.dtbo" -print0)
+fi
+popd > /dev/null
+
+if [[ ${#OVERLAY_REL_PATHS[@]} -ne 0 ]]; then
+	rsync_transfer_file_arr "$OVERLAYS_SRC" "$OVERLAYS_TARGET" "${OVERLAY_REL_PATHS[@]}"
 fi
 
 for DTB in "${DTBS[@]}"; do
