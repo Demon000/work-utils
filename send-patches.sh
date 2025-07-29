@@ -8,6 +8,10 @@ while [[ $# -gt 0 ]]; do
 			RFC=1
 			shift
 			;;
+		--resend)
+			RESEND=1
+			shift
+			;;
 		-c|--cover-letter)
 			COVER_LETTER=1
 			shift
@@ -73,6 +77,10 @@ fi
 
 if [[ -n "$RFC" ]]; then
 	FORMAT_PATCH_CMD+=" --rfc"
+fi
+
+if [[ -n "$RESEND" ]]; then
+	FORMAT_PATCH_CMD+=" --resend"
 fi
 
 ALL_PATCHES=$($FORMAT_PATCH_CMD "$COMMITS")
