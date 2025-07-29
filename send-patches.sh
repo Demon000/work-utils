@@ -31,6 +31,7 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 COMMITS="$1"
+shift
 
 if [[ -z "$COMMITS" ]]; then
 	echo "usage: $0 [options] <commits>"
