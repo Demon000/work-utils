@@ -191,6 +191,9 @@ do
 		BUILD_HEADERS=1
 		;;
 	"$NV_DISPLAY_TARGET")
+		if [ ! -d "$NV_DISPLAY_PATH" ]; then
+			continue
+		fi
 		BUILD_NV_DISPLAY=1
 		;;
 	"$NV_SUPPLEMENTS_TARGET")
@@ -256,10 +259,6 @@ build_modules() {
 }
 
 build_nv_display_modules() {
-	if [ ! -d "$NV_DISPLAY_PATH" ]; then
-		return
-	fi
-
 	build_modules "$NV_DISPLAY_PATH" "${NV_DISPLAY_O_OPT[@]}"
 }
 
@@ -319,10 +318,6 @@ install_kernel_modules() {
 install_nv_display_modules() {
 	local modules_path="$1"
 	shift
-
-	if [ ! -d "$NV_DISPLAY_PATH" ]; then
-		return
-	fi
 
 	# To get the same output as Nvidia does when installing the display
 	# module, set INSTALL_MOD_DIR line in kernel-open/Makefile to
