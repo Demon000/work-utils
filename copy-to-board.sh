@@ -237,10 +237,10 @@ if [[ ${#OVERLAY_REL_PATHS[@]} -ne 0 ]]; then
 fi
 
 for DTB in "${DTBS[@]}"; do
-	if [[ -z "$DTB_TARGET_NAME" ]]; then
-		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_PREFIX""$DTB"
-	else
+	if [[ -n "$DTB_TARGET_NAME" ]]; then
 		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_TARGET_NAME"
+	else
+		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_PREFIX""$DTB"
 	fi
 done
 
