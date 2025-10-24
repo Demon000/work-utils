@@ -48,7 +48,7 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}"
 
-usage="usage: $0 <board> [options] <scp <ip>>
+usage="usage: $0 <board> [options] <disk <path>|scp <ip>>
 board:
 	xil: Xilinx board
 	rpi3: Raspberry Pi 3 (32-bit)
@@ -212,7 +212,40 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		shift
 		PATHS=("$@")
 		rsync_transfer_file_arr_common "$SRC" "root@$IP":"$TARGET" "${PATHS[@]}"
+	}
+elif [[ "$TRANSFER_MODE" = "disk" ]]; then
+	if [[ $# -lt 3 ]]; then
+		print_usage
+		exit 1
+	fi
 
+	IS_DISK=1
+
+	DEST_PATH="$3"
+
+	cp_transfer() {
+		SRC="$1"
+		TARGET="$2"
+		echo "Copy $SRC to $TARGET"
+		cp "$SRC" "$TARGET"
+		if [[ $? -ne 0 ]]; then
+			exit 1
+		fi
+	}
+
+	rsync_transfer() {
+		SRC="$1"
+		TARGET="$2"
+		rsync_transfer_common "$SRC" "$DEST_PATH$TARGET"
+	}
+
+	rsync_transfer_file_arr() {
+		SRC="$1"
+		shift
+		TARGET="$1"
+		shift
+		PATHS=("$@")
+		rsync_transfer_file_arr_common "$SRC" "$DEST_PATH$TARGET" "${PATHS[@]}"
 	}
 else
 	echo "invalid transfer mode"
