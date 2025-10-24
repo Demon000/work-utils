@@ -21,10 +21,6 @@ while [[ $# -gt 0 ]]; do
 			shift
 			shift
 			;;
-		-*|--*)
-			echo "Unknown option $1"
-			exit 1
-			;;
 		*)
 			POSITIONAL_ARGS+=("$1")
 			shift
@@ -121,4 +117,4 @@ select yn in "Yes" "No"; do
 	esac
 done
 
-git send-email "${SEND_ARGS[@]}" $ALL_PATCHES
+git send-email "$@" "${SEND_ARGS[@]}" $ALL_PATCHES
