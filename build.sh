@@ -195,7 +195,7 @@ TARGETS=("${INITIAL_TARGETS[@]}")
 START_TIME=$(date +%s.%N)
 
 if [[ ${#TARGETS[@]} -ne 0 ]]; then
-	make "${O_OPT[@]}" "${TARGETS[@]}"
+	make W=1 "${O_OPT[@]}" "${TARGETS[@]}"
 	if [[ $? -ne 0 ]]; then
 		exit
 	fi
