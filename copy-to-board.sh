@@ -244,7 +244,7 @@ for DTB in "${DTBS[@]}"; do
 	fi
 done
 
-if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
+if [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
 	rsync_transfer "$MODULES_PATH/lib/modules/$KERNEL_VERSION" "/lib/modules/"
 fi
