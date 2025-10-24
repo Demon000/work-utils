@@ -27,10 +27,6 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	--nv-initrd)
-		NV_INIT_RD=1
-		shift
-		;;
 	--all-overlays)
 		ALL_OVERLAYS=1
 		shift
@@ -51,7 +47,6 @@ set -- "${POSITIONAL_ARGS[@]}"
 usage="usage: $0 <board> [options] <scp <ip>>
 board:
 	xil: Xilinx board
-	nv: Nvidia Tegra board
 	rpi3: Raspberry Pi 3 (32-bit)
 	rpi4: Raspberry Pi 4 (32-bit)
 	rpi4-64: Raspberry Pi 4 (64-bit)
@@ -64,7 +59,6 @@ options:
 	--all-overlays: copy all overlays
 	-o|--out <kernel_out_path>: specify kernel out path
 	-m|--modules <modules_path>: specify modules out path
-	--nv-initrd: update nvidia init.rd
 "
 
 print_usage() {
@@ -124,16 +118,6 @@ elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
 
 	OVERLAYS_SRC="arch/arm64/boot/dts"
 	OVERLAYS_TARGET="/boot/firmware/overlays"
-elif [[ "$BOARD_TYPE" = "nv" ]]; then
-	KERNEL_SRC="arch/arm64/boot/Image"
-	KERNEL_TARGET="/boot/Image"
-
-	DTB_PREFIX=kernel_
-	DTB_SRC="arch/arm64/boot/dts/nvidia"
-	DTB_TARGET="/boot/dtb"
-
-	OVERLAYS_SRC="$DTB_SRC"
-	OVERLAYS_TARGET="/boot"
 elif [[ "$BOARD_TYPE" = "imx8mp-hummingboard-pulse" ]]; then
 	KERNEL_SRC="arch/arm64/boot/Image"
 	KERNEL_TARGET="/boot/Image"
@@ -266,10 +250,6 @@ if [[ -n "$IS_SCP" ]] && [[ -n "$MODULES_PATH" ]]; then
 fi
 
 if [[ -n "$IS_SCP" ]]; then
-	if [[ -n "$NV_INIT_RD" ]]; then
-		cmd nv-update-initrd
-	fi
-
 	echo "Syncing..."
 	cmd sync
 
