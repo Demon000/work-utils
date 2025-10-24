@@ -99,10 +99,15 @@ echo "$CODE_PATCHES"
 
 ./scripts/checkpatch.pl --strict $CODE_PATCHES
 
-MAINTAINERS=$(./scripts/get_maintainer.pl --norolestats $CODE_PATCHES)
-MAINTAINERS_ROLES=$(./scripts/get_maintainer.pl $CODE_PATCHES)
+MAINTAINERS=$(./scripts/get_maintainer.pl --interactive --norolestats $CODE_PATCHES)
 echo 'Maintainers:'
-echo "$MAINTAINERS_ROLES"
+echo "$MAINTAINERS"
+
+SEND_ARGS=()
+while read MAINTAINER; do
+	MAINTAINER=$(echo "$MAINTAINER" | tr -d '"')
+	SEND_ARGS+=("--cc=$MAINTAINER")
+done <<< "$MAINTAINERS"
 
 echo "Do you wish to send the patches?"
 select yn in "Yes" "No"; do
@@ -115,11 +120,5 @@ select yn in "Yes" "No"; do
 			;;
 	esac
 done
-
-SEND_ARGS=()
-while read MAINTAINER; do
-	MAINTAINER=$(echo "$MAINTAINER" | tr -d '"')
-	SEND_ARGS+=("--cc=$MAINTAINER")
-done <<< "$MAINTAINERS"
 
 git send-email "${SEND_ARGS[@]}" $ALL_PATCHES
