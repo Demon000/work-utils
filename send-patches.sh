@@ -56,6 +56,14 @@ fi
 
 FORMAT_PATCH_ARGS=()
 
+# Add the following to your git config to make notes actually useful
+# [notes "rewrite"]
+#     amend = true
+#     rebase = true
+# [notes]
+#     rewriteRef = refs/notes/commits
+FORMAT_PATCH_ARGS+=("--notes")
+
 if [[ -n "$VERSION" ]]; then
 	FORMAT_PATCH_ARGS+=("-v" "$VERSION")
 fi
