@@ -1,5 +1,12 @@
 #!/bin/bash
 
+print_help() {
+	echo "usage: $0 [options] <commits>"
+	echo "options:"
+	echo "-c|--cover-letter: generate cover letter"
+	echo "-v|--version: use specified version when gerating patches"
+}
+
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -21,6 +28,14 @@ while [[ $# -gt 0 ]]; do
 			shift
 			shift
 			;;
+		-h|--help)
+			print_help
+			exit 0
+			;;
+		-*|--*)
+			echo "Unknown option $1"
+			print_help
+			exit 1
 		*)
 			POSITIONAL_ARGS+=("$1")
 			shift
@@ -34,10 +49,7 @@ COMMITS="$1"
 shift
 
 if [[ -z "$COMMITS" ]]; then
-	echo "usage: $0 [options] <commits>"
-	echo "options:"
-	echo "-c|--cover-letter: generate cover letter"
-	echo "-v|--version: use specified version when gerating patches"
+	print_help
 	exit 1
 fi
 
