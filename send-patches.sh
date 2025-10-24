@@ -32,10 +32,6 @@ while [[ $# -gt 0 ]]; do
 			print_help
 			exit 0
 			;;
-		-*|--*)
-			echo "Unknown option $1"
-			print_help
-			exit 1
 		*)
 			POSITIONAL_ARGS+=("$1")
 			shift
