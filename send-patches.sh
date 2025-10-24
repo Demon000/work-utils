@@ -61,6 +61,7 @@ while read FILE; do
 		else
 			echo "Testing devicetree binding $FILE"
 			make dt_binding_check DT_SCHEMA_FILES="$RELATIVE_YAML"
+			make dtbs_check DT_SCHEMA_FILES="$RELATIVE_YAML"
 		fi
 		;;
 	esac
