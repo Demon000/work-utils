@@ -12,6 +12,10 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	--dtbs)
+		ALL_DTBS=1
+		shift
+		;;
 	-v|--overlay)
 		OVERLAYS+=("$2")
 		shift
@@ -55,6 +59,7 @@ board:
 	tb-rk3399-vendor-u-boot: Toybrick RK3399 ProX
 options:
 	-d|--dtb <dtb>: copy the specified dtb
+	--all-dtbs: copy all dtbs
 	-v|--overlay <overlay>: copy the specified overlay
 	--all-overlays: copy all overlays
 	-o|--out <kernel_out_path>: specify kernel out path
@@ -236,13 +241,34 @@ if [[ ${#OVERLAY_REL_PATHS[@]} -ne 0 ]]; then
 	rsync_transfer_file_arr "$OVERLAYS_SRC" "$OVERLAYS_TARGET" "${OVERLAY_REL_PATHS[@]}"
 fi
 
-for DTB in "${DTBS[@]}"; do
-	if [[ -n "$DTB_TARGET_NAME" ]]; then
-		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_TARGET_NAME"
-	else
-		cp_transfer "$DTB_SRC"/"$DTB" "$DTB_TARGET"/"$DTB_PREFIX""$DTB"
-	fi
-done
+pushd "$DTB_SRC" > /dev/null
+if [[ ${#DTBS[@]} -ne 0 ]]; then
+	echo "Copy ${DTBS[@]} from $DTB_SRC"
+
+	for DTB in "${DTBS[@]}"; do
+		DTB_REL_PATH=$(find -name "$DTB")
+		if [[ -z "$DTB_REL_PATH" ]]; then
+			echo "Failed to find $DTB in $DTB_SRC"
+			continue
+		fi
+
+		DTB_REL_PATHS+=("$DTB_REL_PATH")
+	done
+fi
+
+if [[ -n "$ALL_DTBS" ]]; then
+	echo "Copy all dtbs from $DTB_SRC"
+
+	while IFS= read -d $'\0' -r DTB; do
+		DTB_REL_PATHS+=("$DTB")
+	done < <(find -name "*.dtb" -print0)
+fi
+popd > /dev/null
+
+if [[ ${#DTB_REL_PATHS[@]} -ne 0 ]]; then
+	echo "Copy ${DTB_REL_PATHS[@]} from $DTB_SRC"
+	rsync_transfer_file_arr "$DTB_SRC" "$DTB_TARGET" "${DTB_REL_PATHS[@]}"
+fi
 
 if [[ -n "$MODULES_PATH" ]]; then
 	KERNEL_VERSION=$(cat "$KERNEL_VERSION_PATH")
