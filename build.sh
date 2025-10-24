@@ -163,6 +163,7 @@ if [[ -n "$CROSS_COMPILE" ]]; then
 fi
 
 O_OPT+=(-j$(nproc))
+O_OPT+=(DTC_FLAGS=\"-@\")
 
 echo "Targets: ${TARGETS[@]}"
 echo "Options: ${O_OPT[@]}"
