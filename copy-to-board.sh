@@ -160,6 +160,12 @@ elif [[ "$BOARD_TYPE" = "tb-rk3399-vendor-u-boot" ]]; then
 	DTB_SRC="arch/arm64/boot/dts/rockchip"
 	DTB_TARGET="/boot/extlinux"
 	DTB_TARGET_NAME="toybrick.dtb"
+elif [[ "$BOARD_TYPE" = "arm64" ]]; then
+	KERNEL_SRC="arch/arm64/boot/Image"
+	KERNEL_TARGET="/boot/Image"
+
+	DTB_SRC="arch/arm64/boot/dts"
+	DTB_TARGET="/boot/dtbs"
 else
 	print_usage
 fi
