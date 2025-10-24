@@ -50,7 +50,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 while read FILE; do
 	case "$FILE" in
 	*.yaml)
-		RELATIVE_YAML=${FILE#Documentation/devicetree/bindings/}
+		RELATIVE_YAML="${FILE#Documentation/devicetree/bindings/}"
 		if [[ "$RELATIVE_YAML" = "$FILE" ]]; then
 			echo "$FILE not under Documentation/devicetree/bindings/, skip check..."
 		else
