@@ -31,6 +31,11 @@ while [[ $# -gt 0 ]]; do
 			shift
 			shift
 			;;
+		--prefix)
+			SUBJECT_PREFIX="$2"
+			shift
+			shift
+			;;
 		-h|--help)
 			print_help
 			exit 0
@@ -75,6 +80,9 @@ if [[ -n "$RFC" ]]; then
 fi
 if [[ -n "$RESEND" ]]; then
 	FORMAT_PATCH_ARGS+=("--resend")
+fi
+if [[ -n "$SUBJECT_PREFIX" ]]; then
+	FORMAT_PATCH_ARGS+=("--subject-prefix" "$SUBJECT_PREFIX")
 fi
 
 ALL_PATCHES=$(git format-patch "${FORMAT_PATCH_ARGS[@]}" "$COMMITS")
