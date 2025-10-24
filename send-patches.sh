@@ -52,7 +52,7 @@ while read FILE; do
 	*.yaml)
 		RELATIVE_YAML=${FILE#Documentation/devicetree/bindings/}
 		if [[ "$RELATIVE_YAML" = "$FILE" ]]; then
-			echo "$FILE not a devicetree binding, skip check..."
+			echo "$FILE not under Documentation/devicetree/bindings/, skip check..."
 		else
 			echo "Testing devicetree binding $FILE"
 			make dt_binding_check DT_SCHEMA_FILES="$RELATIVE_YAML"
