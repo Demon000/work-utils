@@ -71,6 +71,29 @@ print_usage() {
 	exit 1
 }
 
+
+rsync_transfer_common() {
+	SRC="$1"
+	TARGET="$2"
+	rsync -av --checksum --omit-dir-times --delete "$SRC" "$TARGET"
+	if [[ $? -ne 0 ]]; then
+		exit 1
+	fi
+}
+
+rsync_transfer_file_arr_common() {
+	SRC="$1"
+	shift
+	TARGET="$1"
+	shift
+	PATHS=("$@")
+
+	RSYNC_TMP_FILE=$(mktemp)
+	printf "%s\n" "${PATHS[@]}" > "$RSYNC_TMP_FILE"
+	rsync -av --checksum --omit-dir-times --files-from="$RSYNC_TMP_FILE" --no-relative --no-owner --no-group "$SRC" "$TARGET"
+	rm "$RSYNC_TMP_FILE"
+}
+
 if [[ $# -lt 2 ]]; then
 	print_usage
 fi
@@ -173,7 +196,7 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 	rsync_transfer() {
 		SRC="$1"
 		TARGET="$2"
-		rsync -av --checksum --omit-dir-times --delete "$SRC" "root@$IP":"$TARGET"
+		rsync_transfer_common "$SRC" "root@$IP":"$TARGET"
 	}
 
 	rsync_transfer_file_arr() {
@@ -182,11 +205,8 @@ if [[ "$TRANSFER_MODE" = "scp" ]]; then
 		TARGET="$1"
 		shift
 		PATHS=("$@")
+		rsync_transfer_file_arr_common "$SRC" "root@$IP":"$TARGET" "${PATHS[@]}"
 
-		RSYNC_TMP_FILE=$(mktemp)
-		printf "%s\n" "${PATHS[@]}" > "$RSYNC_TMP_FILE"
-		rsync -av --checksum --omit-dir-times --files-from="$RSYNC_TMP_FILE" --no-relative --no-owner --no-group "$SRC" "root@$IP":"$TARGET"
-		rm "$RSYNC_TMP_FILE"
 	}
 else
 	echo "invalid transfer mode"
