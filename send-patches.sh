@@ -54,25 +54,22 @@ fi
 
 "$SCRIPT_DIR"/check-patches.sh "$COMMITS"
 
-FORMAT_PATCH_CMD="git format-patch"
+FORMAT_PATCH_ARGS=()
 
 if [[ -n "$VERSION" ]]; then
-	FORMAT_PATCH_CMD+=" -v$VERSION"
+	FORMAT_PATCH_ARGS+=("-v" "$VERSION")
 fi
-
 if [[ -n "$COVER_LETTER" ]]; then
-	FORMAT_PATCH_CMD+=" --cover-letter"
+	FORMAT_PATCH_ARGS+=("--cover-letter")
 fi
-
 if [[ -n "$RFC" ]]; then
-	FORMAT_PATCH_CMD+=" --rfc"
+	FORMAT_PATCH_ARGS+=("--rfc")
 fi
-
 if [[ -n "$RESEND" ]]; then
-	FORMAT_PATCH_CMD+=" --resend"
+	FORMAT_PATCH_ARGS+=("--resend")
 fi
 
-ALL_PATCHES=$($FORMAT_PATCH_CMD "$COMMITS")
+ALL_PATCHES=$(git format-patch "${FORMAT_PATCH_ARGS[@]}" "$COMMITS")
 if [[ -n "$COVER_LETTER" ]]; then
 	COVER_PATCH=$(echo "$ALL_PATCHES" | head -n 1)
 	CODE_PATCHES=$(echo "$ALL_PATCHES" | tail -n +2)
