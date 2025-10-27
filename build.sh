@@ -129,17 +129,22 @@ O_OPT=()
 if [[ "$BOARD_TYPE" = "rpi3" ]]; then
 	O_OPT+=(ARCH="arm")
 	O_OPT+=(KERNEL="kernel7")
+	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
 elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
 	O_OPT+=(ARCH="arm")
 	O_OPT+=(KERNEL="kernel7l")
+	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
 elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
+	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
 	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel_2712")
+	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 elif [[ "$BOARD_TYPE" = "arm64" ]]; then
 	O_OPT+=(ARCH="arm64")
+	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 fi
 
 if [[ -n "$KERNEL_LOCALVERSION" ]]; then
