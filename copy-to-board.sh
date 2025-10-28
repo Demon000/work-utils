@@ -57,6 +57,7 @@ board:
 	rpi5: Raspberry Pi 5 (64-bit)
 	imx8mp-hummingboard-pulse: IMX8MP Hummingboard Pulse
 	tb-rk3399-vendor-u-boot: Toybrick RK3399 ProX
+	arm64: Generic ARM64 board
 options:
 	-d|--dtb <dtb>: copy the specified dtb
 	--all-dtbs: copy all dtbs
