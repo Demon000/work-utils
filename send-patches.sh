@@ -78,6 +78,19 @@ fi
 
 "$SCRIPT_DIR"/check-patches.sh "$BOARD" "$COMMITS"
 
+for COMMIT in $(git rev-list "$COMMITS"); do
+	TITLE=$(git log -1 --pretty=format:%s "$COMMIT")
+	MESSAGE=$(git log -1 --pretty=format:%b "$COMMIT")
+	if [[ "$MESSAGE" != *"Signed-off-by:"* ]]; then
+		echo "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
+		exit 1
+	fi
+	if [[ "$MESSAGE" == *"Reviewed-by:"* && -z "$VERION" ]]; then
+		echo "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
+		exit 1
+	fi
+done
+
 FORMAT_PATCH_ARGS=()
 
 # Add the following to your git config to make notes actually useful
