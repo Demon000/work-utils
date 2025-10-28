@@ -35,7 +35,7 @@ fi
 ./scripts/checkpatch.pl --strict -g "$COMMITS"
 
 . "$SCRIPT_DIR/venv/bin/activate"
-pip install --upgrade dtschema
+pip install --upgrade dtschema > /dev/null 2>&1
 
 while read FILE; do
 	case "$FILE" in
