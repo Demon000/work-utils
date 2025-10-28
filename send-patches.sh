@@ -6,6 +6,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 print_help() {
 	echo "usage: $0 [options] <board> <commits>"
 	echo "board: passed to check-patches.sh"
+	echo "commits: commit range to generate patches from"
 	echo "options:"
 	echo "-c|--cover-letter: generate cover letter"
 	echo "-v|--version: use specified version when gerating patches"

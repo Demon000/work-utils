@@ -6,6 +6,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 print_help() {
 	echo "usage: $0 [options] <commits>"
 	echo "board: passed to build.sh"
+	echo "commits: commit range to check"
 }
 
 
