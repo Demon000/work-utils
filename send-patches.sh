@@ -88,6 +88,13 @@ FORMAT_PATCH_ARGS=()
 #     rewriteRef = refs/notes/commits
 FORMAT_PATCH_ARGS+=("--notes")
 
+if [[ -z "$COVER_LETTER" ]]; then
+	COUNT=$(git rev-list --count "$COMMITS")
+	if [[ "$COUNT" -gt 1 ]]; then
+		COVER_LETTER=1
+	fi
+fi
+
 if [[ -n "$VERSION" ]]; then
 	FORMAT_PATCH_ARGS+=("-v" "$VERSION")
 fi
