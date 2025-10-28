@@ -5,7 +5,17 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 print_help() {
 	echo "usage: $0 [options] <commits>"
+	echo "board: passed to build.sh"
 }
+
+
+BOARD="$1"
+shift
+
+if [[ -z "$BOARD" ]]; then
+	print_help
+	exit 1
+fi
 
 COMMITS="$1"
 shift

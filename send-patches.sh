@@ -4,7 +4,8 @@ SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 print_help() {
-	echo "usage: $0 [options] <commits>"
+	echo "usage: $0 [options] <board> <commits>"
+	echo "board: passed to check-patches.sh"
 	echo "options:"
 	echo "-c|--cover-letter: generate cover letter"
 	echo "-v|--version: use specified version when gerating patches"
@@ -49,6 +50,14 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}"
 
+BOARD="$1"
+shift
+
+if [[ -z "$BOARD" ]]; then
+	print_help
+	exit 1
+fi
+
 COMMITS="$1"
 shift
 
@@ -57,7 +66,7 @@ if [[ -z "$COMMITS" ]]; then
 	exit 1
 fi
 
-"$SCRIPT_DIR"/check-patches.sh "$COMMITS"
+"$SCRIPT_DIR"/check-patches.sh "$BOARD" "$COMMITS"
 
 FORMAT_PATCH_ARGS=()
 
