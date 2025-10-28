@@ -45,8 +45,8 @@ while read FILE; do
 			echo "$FILE not under Documentation/devicetree/bindings/, skip check..."
 		else
 			echo "Testing devicetree binding $FILE"
-			make dt_binding_check DT_SCHEMA_FILES="$RELATIVE_YAML"
-			make dtbs_check DT_SCHEMA_FILES="$RELATIVE_YAML"
+			"$SCRIPT_DIR"/build.sh "$BOARD" dt_binding_check DT_SCHEMA_FILES="$RELATIVE_YAML"
+			"$SCRIPT_DIR"/build.sh "$BOARD" dtbs_check DT_SCHEMA_FILES="$RELATIVE_YAML"
 		fi
 		;;
 	*.dts|*.dtso)
@@ -55,7 +55,7 @@ while read FILE; do
 			echo "$FILE not under arch/arm64/boot/dts/, skip check..."
 		else
 			echo "Testing devicetree source $FILE"
-			make CHECK_DTBS=1 "$RELATIVE_DTS"
+			"$SCRIPT_DIR"/build.sh "$BOARD" CHECK_DTBS=1 "$RELATIVE_DTS"
 		fi
 		;;
 	esac
