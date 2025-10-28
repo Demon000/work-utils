@@ -11,6 +11,9 @@ print_help() {
 	echo "-c|--cover-letter: generate cover letter"
 	echo "-v|--version: use specified version when gerating patches"
 	echo "-o|--output <output_path>: save patches to the specified output path"
+	echo "--prefix <subject_prefix>: add the specified prefix to the subject"
+	echo "--rfc: generate patches in rfc mode"
+	echo "--resend: generate patches in resend mode"
 }
 
 POSITIONAL_ARGS=()
