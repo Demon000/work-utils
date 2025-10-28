@@ -10,6 +10,7 @@ print_help() {
 	echo "options:"
 	echo "-c|--cover-letter: generate cover letter"
 	echo "-v|--version: use specified version when gerating patches"
+	echo "-o|--output <output_path>: save patches to the specified output path"
 }
 
 POSITIONAL_ARGS=()
@@ -30,6 +31,11 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-v|--version)
 			VERSION="$2"
+			shift
+			shift
+			;;
+		-o|--output)
+			OUTPUT_PATH="$2"
 			shift
 			shift
 			;;
@@ -93,6 +99,9 @@ if [[ -n "$RESEND" ]]; then
 fi
 if [[ -n "$SUBJECT_PREFIX" ]]; then
 	FORMAT_PATCH_ARGS+=("--subject-prefix" "$SUBJECT_PREFIX")
+fi
+if [[ -n "$OUTPUT_PATH" ]]; then
+	FORMAT_PATCH_ARGS+=("-o" "$OUTPUT_PATH")
 fi
 
 ALL_PATCHES=$(git format-patch "${FORMAT_PATCH_ARGS[@]}" "$COMMITS")
