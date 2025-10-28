@@ -11,7 +11,6 @@ print_usage() {
 	echo "  rpi5: Raspberry Pi 5"
 	echo "	arm64: Basic ARM64 build"
 	echo "options:"
-	echo "	-d|--dtbs: build dtbs"
 	echo "	-m|--modules <modules_path>: build dtbs and install them at the given path"
 	echo "	-h|--headers <headers_path>: build headers and install them at the given path"
 	echo "	-s|--source <source_path>: kernel source path, use current directory if not given"
@@ -23,10 +22,6 @@ print_usage() {
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
-	-d|--dtbs)
-		DTBS=1
-		shift
-		;;
 	-m|--modules)
 		MODULES_PATH="$2"
 		shift
@@ -119,9 +114,7 @@ if [[ -z "$TARGETS" ]]; then
 		TARGETS+=("$HEADERS_INSTALL_TARGET")
 	fi
 
-	if [[ -n "$DTBS" ]]; then
-		TARGETS+=("$DTBS_TARGET")
-	fi
+	TARGETS+=("$DTBS_TARGET")
 fi
 
 O_OPT=()
