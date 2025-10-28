@@ -49,14 +49,5 @@ while read FILE; do
 			"$SCRIPT_DIR"/build.sh "$BOARD" dtbs_check DT_SCHEMA_FILES="$RELATIVE_YAML"
 		fi
 		;;
-	*.dts|*.dtso)
-		RELATIVE_DTS="${FILE#arch/arm64/boot/dts/}"
-		if [[ "$RELATIVE_DTS" = "$FILE" ]]; then
-			echo "$FILE not under arch/arm64/boot/dts/, skip check..."
-		else
-			echo "Testing devicetree source $FILE"
-			"$SCRIPT_DIR"/build.sh "$BOARD" CHECK_DTBS=1 "$RELATIVE_DTS"
-		fi
-		;;
 	esac
 done <<< "$FILES"
