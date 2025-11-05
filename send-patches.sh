@@ -141,15 +141,25 @@ fi
 echo "Patches:"
 echo "$CODE_PATCHES"
 
-MAINTAINERS=$(./scripts/get_maintainer.pl --interactive --norolestats $CODE_PATCHES)
-echo 'Maintainers:'
-echo "$MAINTAINERS"
+echo "Select who to send the patches to."
+TOS=$(./scripts/get_maintainer.pl --interactive --norolestats  -nol $CODE_PATCHES)
+
+echo "Select who to cc the patches to."
+CCS=$(./scripts/get_maintainer.pl --interactive --norolestats  -nom $CODE_PATCHES)
+echo 'To:'
+echo "$TOS"
+echo 'Cc:'
+echo "$CCS"
 
 SEND_ARGS=()
-while read MAINTAINER; do
-	MAINTAINER=$(echo "$MAINTAINER" | tr -d '"')
-	SEND_ARGS+=("--cc=$MAINTAINER")
-done <<< "$MAINTAINERS"
+while read TO; do
+	TO=$(echo "$TO" | tr -d '"')
+	SEND_ARGS+=("--to=$TO")
+done <<< "$TOS"
+while read CC; do
+	CC=$(echo "$CC" | tr -d '"')
+	SEND_ARGS+=("--cc=$CC")
+done <<< "$CCS"
 
 echo "Do you wish to send the patches?"
 select yn in "Yes" "No"; do
