@@ -275,6 +275,8 @@ def process_input_output(
                 master_fd,
             )
 
+            logging.debug(f'Received {data!r}')
+
             os.write(stdout_fd, data)
             context.write_log(data)
 
