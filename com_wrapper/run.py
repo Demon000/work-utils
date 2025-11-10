@@ -46,7 +46,7 @@ class Context:
         self.actions_buf_position_map: dict[ActionConfig, int] = {}
 
         self.log_files: dict[str, BinaryIO] = {}
-        self.log: bytearray = bytearray()
+        self.log = bytearray()
 
     def set_arg(self, name: str, value: str):
         logging.info(f'Set arg {name}={value}')
