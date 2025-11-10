@@ -99,6 +99,8 @@ FORMAT_PATCH_ARGS=()
 #     rebase = true
 # [notes]
 #     rewriteRef = refs/notes/commits
+# TODO: add "no changes" note if there's no note for the version
+# being sent
 FORMAT_PATCH_ARGS+=("--notes")
 
 if [[ -z "$COVER_LETTER" ]]; then
