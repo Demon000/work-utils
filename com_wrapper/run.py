@@ -6,7 +6,6 @@ import logging
 import os
 import pty
 import select
-import signal
 import struct
 import subprocess
 import sys
@@ -15,7 +14,6 @@ import traceback
 import tty
 from argparse import ArgumentParser
 from pathlib import Path
-from types import FrameType
 from typing import Any, BinaryIO, Iterable
 
 import json5
@@ -104,18 +102,9 @@ class Context:
         self.log_history_pos = 0
 
 
-def copy_tty_state(src_fd: int, dst_fd: int):
-    try:
-        attrs = termios.tcgetattr(src_fd)
-        termios.tcsetattr(dst_fd, termios.TCSANOW, attrs)
-    except Exception:
-        pass
-
-    try:
-        winsz = fcntl.ioctl(src_fd, termios.TIOCGWINSZ, b'\0' * 8)
-        fcntl.ioctl(dst_fd, termios.TIOCSWINSZ, winsz)
-    except Exception:
-        pass
+def get_terminal_size(fd: int) -> tuple[int, int, int, int]:
+    data = fcntl.ioctl(fd, termios.TIOCGWINSZ, b'\0' * 8)
+    return struct.unpack('HHHH', data)
 
 
 def replace_bytes_str(
@@ -248,7 +237,6 @@ def match_buffer_actions(
             run_action(config, context, master_fd, action)
 
 
-
 def process_input_output(
     config: Config,
     context: Context,
@@ -316,31 +304,27 @@ def process_input_output(
     vterm_lib.vterm_free(vterm)
 
 
-def get_terminal_size(fd: int):
-    data = fcntl.ioctl(fd, termios.TIOCGWINSZ, b'\0' * 8)
-    return struct.unpack('hhhh', data)[0:2]
-
-
 def run_wrapper(config: Config, context: Context):
     master_fd, slave_fd = pty.openpty()
     stdin_fd = sys.stdin.fileno()
     stdout_fd = sys.stdout.fileno()
 
-    rows, cols = get_terminal_size(stdin_fd)
+    rows, cols, xpix, ypix = get_terminal_size(stdin_fd)
     vterm = vterm_lib.vterm_new(rows, cols)
     vterm_screen = vterm_lib.vterm_obtain_screen(vterm)
     vterm_lib.vterm_screen_reset(vterm_screen, 0)
 
-    def handle_winch(_signum: int, _frame: FrameType | None):
-        try:
-            copy_tty_state(stdin_fd, master_fd)
-            rows, cols = get_terminal_size(stdin_fd)
-            vterm_lib.vterm_set_size(vterm, rows, cols)
-        except Exception:
-            pass
+    try:
+        attrs = termios.tcgetattr(stdin_fd)
+        termios.tcsetattr(slave_fd, termios.TCSANOW, attrs)
+    except Exception as e:
+        logging.error(e)
 
-    copy_tty_state(stdin_fd, slave_fd)
-    signal.signal(signal.SIGWINCH, handle_winch)
+    try:
+        winsz = struct.pack('HHHH', rows, cols, xpix, ypix)
+        fcntl.ioctl(slave_fd, termios.TIOCSWINSZ, winsz)
+    except Exception as e:
+        logging.error(e)
 
     proc = subprocess.Popen(
         config.program,
