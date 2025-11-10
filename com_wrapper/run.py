@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ctypes
 import fcntl
 import logging
 import os
@@ -15,7 +16,7 @@ import tty
 from argparse import ArgumentParser
 from pathlib import Path
 from types import FrameType
-from typing import BinaryIO, Iterable
+from typing import Any, BinaryIO, Iterable
 
 import json5
 from config import (
@@ -25,6 +26,18 @@ from config import (
     RunWriteFromFileConfig,
 )
 from utils import delay_us
+from vterm import (
+    get_vterm_row_data,
+    get_vterm_screen_data,
+    get_vterm_stripped_row,
+)
+from vterm_bindings import (
+    SBPushLineCB,
+    VTerm,
+    VTermScreen,
+    VTermScreenCallbacks,
+    vterm_lib,
+)
 
 MAX_BUF_LEN = 4096
 CHUNK_LEN = 1024
@@ -47,6 +60,7 @@ class Context:
 
         self.log_files: dict[str, BinaryIO] = {}
         self.log = bytearray()
+        self.log_history_pos = 0
 
     def set_arg(self, name: str, value: str):
         logging.info(f'Set arg {name}={value}')
@@ -70,12 +84,15 @@ class Context:
         log_file.write(self.log)
         self.log_files[name] = log_file
 
-    def write_log(self, data: bytes):
+    def write_log_history(self, data: bytes, current_data: bytes):
         for log_file in self.log_files.values():
+            log_file.seek(self.log_history_pos)
+            log_file.truncate()
             log_file.write(data)
+            log_file.write(current_data)
             log_file.flush()
 
-        self.log.extend(data)
+        self.log_history_pos += len(data)
 
     def reset_logs(self):
         logging.info('Reset logs')
@@ -84,6 +101,7 @@ class Context:
 
         self.log_files = {}
         self.log.clear()
+        self.log_history_pos = 0
 
 
 def copy_tty_state(src_fd: int, dst_fd: int):
@@ -230,15 +248,30 @@ def match_buffer_actions(
             run_action(config, context, master_fd, action)
 
 
+
 def process_input_output(
     config: Config,
     context: Context,
     stdin_fd: int,
     stdout_fd: int,
     master_fd: int,
+    vterm: VTerm,
+    vterm_screen: VTermScreen,
 ):
     buf = bytearray()
     buf_total_length = 0
+
+    @SBPushLineCB
+    def on_sb_pushline(cols: int, cells: Any, _user: ctypes.c_void_p):
+        row_data = get_vterm_row_data(cols, cells)
+        stripped_row_data = get_vterm_stripped_row(row_data)
+        screen_data = get_vterm_screen_data(vterm, vterm_screen)
+        context.write_log_history(stripped_row_data, screen_data)
+        return 1
+
+    cb = VTermScreenCallbacks()
+    cb.sb_pushline = on_sb_pushline
+    vterm_lib.vterm_screen_set_callbacks(vterm_screen, ctypes.byref(cb), None)
 
     while True:
         rlist, _, _ = select.select([stdin_fd, master_fd], [], [])
@@ -249,7 +282,7 @@ def process_input_output(
             except OSError:
                 break
             if not data:
-                break
+                continue
 
             os.write(master_fd, data)
 
@@ -259,7 +292,7 @@ def process_input_output(
             except OSError:
                 break
             if not data:
-                break
+                continue
 
             buf.extend(data)
             buf_total_length += len(data)
@@ -278,7 +311,9 @@ def process_input_output(
             logging.debug(f'Received {data!r}')
 
             os.write(stdout_fd, data)
-            context.write_log(data)
+            vterm_lib.vterm_input_write(vterm, data, len(data))
+
+    vterm_lib.vterm_free(vterm)
 
 
 def get_terminal_size(fd: int):
@@ -291,9 +326,16 @@ def run_wrapper(config: Config, context: Context):
     stdin_fd = sys.stdin.fileno()
     stdout_fd = sys.stdout.fileno()
 
+    rows, cols = get_terminal_size(stdin_fd)
+    vterm = vterm_lib.vterm_new(rows, cols)
+    vterm_screen = vterm_lib.vterm_obtain_screen(vterm)
+    vterm_lib.vterm_screen_reset(vterm_screen, 0)
+
     def handle_winch(_signum: int, _frame: FrameType | None):
         try:
             copy_tty_state(stdin_fd, master_fd)
+            rows, cols = get_terminal_size(stdin_fd)
+            vterm_lib.vterm_set_size(vterm, rows, cols)
         except Exception:
             pass
 
@@ -312,7 +354,15 @@ def run_wrapper(config: Config, context: Context):
     tty.setraw(stdin_fd)
 
     try:
-        process_input_output(config, context, stdin_fd, stdout_fd, master_fd)
+        process_input_output(
+            config,
+            context,
+            stdin_fd,
+            stdout_fd,
+            master_fd,
+            vterm,
+            vterm_screen,
+        )
     except KeyboardInterrupt:
         pass
     except Exception:
