@@ -137,6 +137,13 @@ else
 	CODE_PATCHES="$ALL_PATCHES"
 fi
 
+while IFS= read -r CODE_PATCH; do
+	if grep -q '^Change-Id:' "$CODE_PATCH"; then
+		sed -i '/^Change-Id:/d' "$CODE_PATCH"
+		echo "Removed Change-Id from $CODE_PATCH"
+	fi
+done <<< "$CODE_PATCHES"
+
 if [[ -n "$COVER_PATCH" ]]; then
 	echo "Cover: $COVER_PATCH"
 fi
