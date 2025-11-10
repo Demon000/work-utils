@@ -48,9 +48,6 @@ class Context:
         self.log_files: dict[str, BinaryIO] = {}
         self.log: bytearray = bytearray()
 
-        self.in_escape_seq = False
-        self.escape_buf = bytearray()
-
     def set_arg(self, name: str, value: str):
         logging.info(f'Set arg {name}={value}')
         self.args[name] = value
