@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <vterm.h>
 
-#define ROWS 25
-#define COLS 80
+#define ROWS 20
+#define COLS 500
 
 static int on_sb_pushline(int cols, const VTermScreenCell* cells, void* user) {
     FILE* out = (FILE*)user;

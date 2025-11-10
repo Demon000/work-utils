@@ -123,7 +123,7 @@ if [[ -n "$RESEND" ]]; then
 	FORMAT_PATCH_ARGS+=("--resend")
 fi
 if [[ -n "$SUBJECT_PREFIX" ]]; then
-	FORMAT_PATCH_ARGS+=("--subject-prefix" "$SUBJECT_PREFIX")
+	FORMAT_PATCH_ARGS+=("--subject-prefix" "PATCH $SUBJECT_PREFIX")
 fi
 if [[ -n "$OUTPUT_PATH" ]]; then
 	FORMAT_PATCH_ARGS+=("-o" "$OUTPUT_PATH")
