@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	--prefix)
+	-p | --prefix)
 		SUBJECT_PREFIX="$2"
 		shift
 		shift
