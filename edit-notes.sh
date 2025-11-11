@@ -33,8 +33,6 @@ for COMMITISH in "$@"; do
 done
 
 EDITOR=$(git var GIT_EDITOR)
-GIT_DIR=$(git rev-parse --git-dir)
-TMP_FILE="$GIT_DIR/META_NOTES_EDITMSG"
 
 for COMMIT in "${COMMITS[@]}"; do
 	CHANGE_ID=$(git log -1 --format=%B "$COMMIT" | get_change_id)
@@ -45,6 +43,7 @@ for COMMIT in "${COMMITS[@]}"; do
 
 	echo "Found Change-Id $CHANGE_ID for commit $COMMIT"
 
+	TMP_FILE=$(mktemp)
 	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
 	NOTE_CONTENT=$(get_commit_git_notes "$COMMIT")
 	if [ -n "$META_CONTENT" ]; then
