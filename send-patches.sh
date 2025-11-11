@@ -88,7 +88,7 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 		echo "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
 		exit 1
 	fi
-	if [[ "$MESSAGE" == *"Reviewed-by:"* && -z "$VERION" ]]; then
+	if [[ "$MESSAGE" == *"Reviewed-by:"* && -z "$VERSION" ]]; then
 		echo "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
 		exit 1
 	fi
