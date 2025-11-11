@@ -20,41 +20,41 @@ POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
-		--rfc)
-			RFC=1
-			shift
-			;;
-		--resend)
-			RESEND=1
-			shift
-			;;
-		-c|--cover-letter)
-			COVER_LETTER=1
-			shift
-			;;
-		-v|--version)
-			VERSION="$2"
-			shift
-			shift
-			;;
-		-o|--output)
-			OUTPUT_PATH="$2"
-			shift
-			shift
-			;;
-		--prefix)
-			SUBJECT_PREFIX="$2"
-			shift
-			shift
-			;;
-		-h|--help)
-			print_help
-			exit 0
-			;;
-		*)
-			POSITIONAL_ARGS+=("$1")
-			shift
-			;;
+	--rfc)
+		RFC=1
+		shift
+		;;
+	--resend)
+		RESEND=1
+		shift
+		;;
+	-c | --cover-letter)
+		COVER_LETTER=1
+		shift
+		;;
+	-v | --version)
+		VERSION="$2"
+		shift
+		shift
+		;;
+	-o | --output)
+		OUTPUT_PATH="$2"
+		shift
+		shift
+		;;
+	--prefix)
+		SUBJECT_PREFIX="$2"
+		shift
+		shift
+		;;
+	-h | --help)
+		print_help
+		exit 0
+		;;
+	*)
+		POSITIONAL_ARGS+=("$1")
+		shift
+		;;
 	esac
 done
 
