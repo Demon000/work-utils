@@ -10,7 +10,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 print_help() {
 	echo "usage: $0 <commits>"
-	echo "commits: commits to edit notes for"
+	echo "commits: commits to show notes for"
 }
 
 if [[ $# -eq 0 ]]; then
@@ -21,8 +21,6 @@ fi
 COMMITS=()
 parse_commitish COMMITS "$@"
 
-EDITOR=$(git var GIT_EDITOR)
-
 for COMMIT in "${COMMITS[@]}"; do
 	CHANGE_ID=$(git log -1 --format=%B "$COMMIT" | get_change_id)
 	if [[ -z "$CHANGE_ID" ]]; then
@@ -32,20 +30,15 @@ for COMMIT in "${COMMITS[@]}"; do
 
 	echo "Found Change-Id $CHANGE_ID for commit $COMMIT"
 
-	TMP_FILE=$(mktemp)
 	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
-	NOTE_CONTENT=$(get_commit_git_notes "$COMMIT")
-	if [[ -n "$META_CONTENT" ]]; then
-		printf '%s\n' "$META_CONTENT" >"$TMP_FILE"
-	elif [[ -n "$NOTE_CONTENT" ]]; then
-		printf '%s\n' "$NOTE_CONTENT" >"$TMP_FILE"
-	fi
+    if [[ -z "$META_CONTENT" ]]; then
+	    echo "Skipping $CHANGE_ID: no meta content found"
+        continue
+    fi
 
-	notes_default_message "$COMMIT" >>"$TMP_FILE"
-
-	echo "Editing note for $CHANGE_ID"
-	$EDITOR "$TMP_FILE"
-
-	cleanup_notes "$TMP_FILE"
-	set_change_id_meta_content_from_file "$CHANGE_ID" "$TMP_FILE"
+    git show -s "$COMMIT"
+    echo
+    echo "Notes:"
+    echo "$META_CONTENT" | sed 's/^/    /'
+    echo
 done
