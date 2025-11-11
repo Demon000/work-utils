@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+SCRIPT_PATH=$(realpath "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+. "$SCRIPT_DIR/commit-utils.sh"
+. "$SCRIPT_DIR/meta-utils.sh"
+
 print_help() {
 	echo "usage: $0 <commits>"
 	echo "commits: commits to edit notes for"
@@ -27,10 +33,11 @@ for COMMITISH in "$@"; do
 done
 
 EDITOR=$(git var GIT_EDITOR)
+GIT_DIR=$(git rev-parse --git-dir)
+TMP_FILE="$GIT_DIR/META_NOTES_EDITMSG"
 
 for COMMIT in "${COMMITS[@]}"; do
-	CHANGE_ID=$(git log -1 --format=%B "$COMMIT" | awk '/^Change-Id:/ {print $2; exit}')
-
+	CHANGE_ID=$(git log -1 --format=%B "$COMMIT" | get_change_id)
 	if [ -z "$CHANGE_ID" ]; then
 		echo "Skipping $COMMIT: no Change-Id found" >&2
 		continue
@@ -38,50 +45,19 @@ for COMMIT in "${COMMITS[@]}"; do
 
 	echo "Found Change-Id $CHANGE_ID for commit $COMMIT"
 
-	REF="refs/meta/$CHANGE_ID"
-
-	TMP_FILE=$(mktemp)
-
-	META_CONTENT=$(git show "$REF" 2>/dev/null || true)
-	NOTE_CONTENT=$(git notes show "$COMMIT" 2>/dev/null || true)
+	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
+	NOTE_CONTENT=$(get_commit_git_notes "$COMMIT")
 	if [ -n "$META_CONTENT" ]; then
 		printf '%s\n' "$META_CONTENT" >"$TMP_FILE"
 	elif [ -n "$NOTE_CONTENT" ]; then
 		printf '%s\n' "$NOTE_CONTENT" >"$TMP_FILE"
 	fi
 
-	{
-		echo
-		echo "#"
-		echo "# Write/edit the notes for the following object:"
-		echo "#"
-		git show --stat "$COMMIT" | sed 's/^/# /'
-		echo "#"
-	} >>"$TMP_FILE"
+	notes_default_message "$COMMIT" >>"$TMP_FILE"
 
 	echo "Editing note for $CHANGE_ID"
 	$EDITOR "$TMP_FILE"
 
-	# Remove commented lines
-	sed -i '/^#/d' "$TMP_FILE"
-
-	# Remove first line if it's empty
-	sed -i '1{/^[[:space:]]*$/d;}' "$TMP_FILE"
-
-	# Remove trailing empty lines
-	sed -i ':a;/^[[:space:]]*$/{$d;N;ba}' "$TMP_FILE"
-
-	# Add back a single newline
-	sed -i -e '$a\' "$TMP_FILE"
-
-	if [ ! -s "$TMP_FILE" ]; then
-		git update-ref -d "$REF"
-		echo "Deleted note for $CHANGE_ID"
-	else
-		BLOB=$(git hash-object -w "$TMP_FILE")
-		git update-ref "$REF" "$BLOB"
-		echo "Updated note for $CHANGE_ID"
-	fi
-
-	rm "$TMP_FILE"
+	cleanup_notes "$TMP_FILE"
+	set_change_id_meta_content_from_file "$CHANGE_ID" "$TMP_FILE"
 done

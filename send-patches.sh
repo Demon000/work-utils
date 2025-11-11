@@ -3,6 +3,9 @@
 SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
+. "$SCRIPT_DIR/commit-utils.sh"
+. "$SCRIPT_DIR/meta-utils.sh"
+
 print_help() {
 	echo "usage: $0 [options] <board> <commits>"
 	echo "board: passed to check-patches.sh"
@@ -93,16 +96,6 @@ done
 
 FORMAT_PATCH_ARGS=()
 
-# Add the following to your git config to make notes actually useful
-# [notes "rewrite"]
-#     amend = true
-#     rebase = true
-# [notes]
-#     rewriteRef = refs/notes/commits
-# TODO: add "no changes" note if there's no note for the version
-# being sent
-FORMAT_PATCH_ARGS+=("--notes")
-
 if [[ -z "$COVER_LETTER" ]]; then
 	COUNT=$(git rev-list --count "$COMMITS")
 	if [[ "$COUNT" -gt 1 ]]; then
@@ -138,11 +131,18 @@ else
 fi
 
 while IFS= read -r CODE_PATCH; do
-	if grep -q '^Change-Id:' "$CODE_PATCH"; then
-		sed -i '/^Change-Id:/d' "$CODE_PATCH"
-		echo "Removed Change-Id from $CODE_PATCH"
+	CHANGE_ID=$(cat "$CODE_PATCH" | get_change_id)
+	if [[ -z "$CHANGE_ID" ]]; then
+		continue
 	fi
-done <<< "$CODE_PATCHES"
+
+	remove_change_id_from_file "$CODE_PATCH"
+
+	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
+	if [ -n "$META_CONTENT" ]; then
+		insert_after_separator "$CODE_PATCH" "$META_CONTENT"
+	fi
+done <<<"$CODE_PATCHES"
 
 if [[ -n "$COVER_PATCH" ]]; then
 	echo "Cover: $COVER_PATCH"
@@ -151,10 +151,10 @@ echo "Patches:"
 echo "$CODE_PATCHES"
 
 echo "Select who to send the patches to."
-TOS=$(./scripts/get_maintainer.pl --interactive --norolestats  -nol $CODE_PATCHES)
+TOS=$(./scripts/get_maintainer.pl --interactive --norolestats -nol $CODE_PATCHES)
 
 echo "Select who to cc the patches to."
-CCS=$(./scripts/get_maintainer.pl --interactive --norolestats  -nom $CODE_PATCHES)
+CCS=$(./scripts/get_maintainer.pl --interactive --norolestats -nom $CODE_PATCHES)
 echo 'To:'
 echo "$TOS"
 echo 'Cc:'
@@ -164,21 +164,21 @@ SEND_ARGS=()
 while read TO; do
 	TO=$(echo "$TO" | tr -d '"')
 	SEND_ARGS+=("--to=$TO")
-done <<< "$TOS"
+done <<<"$TOS"
 while read CC; do
 	CC=$(echo "$CC" | tr -d '"')
 	SEND_ARGS+=("--cc=$CC")
-done <<< "$CCS"
+done <<<"$CCS"
 
 echo "Do you wish to send the patches?"
 select yn in "Yes" "No"; do
 	case $yn in
-		Yes)
-			break
-			;;
-		No)
-			exit
-			;;
+	Yes)
+		break
+		;;
+	No)
+		exit
+		;;
 	esac
 done
 
