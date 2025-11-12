@@ -3,3 +3,4 @@ parse
 ply
 gitpython
 pydantic
+dtschema

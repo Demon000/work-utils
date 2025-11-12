@@ -1,5 +1,10 @@
 #!/bin/bash
 
+SCRIPT_PATH=$(realpath "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+. "$SCRIPT_DIR/dtb-utils.sh"
+
 POSITIONAL_ARGS=()
 
 print_usage() {
@@ -162,6 +167,7 @@ fi
 
 O_OPT+=(-j$(nproc))
 O_OPT+=(DTC_FLAGS=\"-@\")
+O_OPT+=(CHECK_DTBS=y)
 
 echo "Targets: ${TARGETS[@]}"
 echo "Options: ${O_OPT[@]}"
@@ -192,6 +198,8 @@ done
 TARGETS=("${INITIAL_TARGETS[@]}")
 
 START_TIME=$(date +%s.%N)
+
+install_dtschema
 
 if [[ ${#TARGETS[@]} -ne 0 ]]; then
 	make W=1 "${O_OPT[@]}" "${TARGETS[@]}"

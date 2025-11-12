@@ -4,6 +4,7 @@ SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 . "$SCRIPT_DIR/commit-utils.sh"
+. "$SCRIPT_DIR/dtb-utils.sh"
 
 print_help() {
 	echo "usage: $0 [options] <board> <commits|patches>"
@@ -21,10 +22,6 @@ if [[ -z "$BOARD" ]]; then
 	exit 1
 fi
 
-if [[ ! -d "$SCRIPT_DIR/venv" ]]; then
-	python3 -m venv "$SCRIPT_DIR/venv"
-fi
-
 if has_patches "$@"; then
 	mapfile -t FILES < <(extract_patches_modified_files "$@")
 	FILES=$(extract_patches_modified_files "$@")
@@ -34,8 +31,7 @@ else
 	./scripts/checkpatch.pl --strict --ignore "GERRIT_CHANGE_ID" -g "$@"
 fi
 
-. "$SCRIPT_DIR/venv/bin/activate"
-pip install --upgrade dtschema > /dev/null 2>&1
+install_dtschema
 
 DT_SCHEMA_FILES=()
 for FILE in "${FILES[@]}"; do

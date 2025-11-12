@@ -5,6 +5,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 . "$SCRIPT_DIR/commit-utils.sh"
 . "$SCRIPT_DIR/meta-utils.sh"
+. "$SCRIPT_DIR/dtb-utils.sh"
 
 print_help() {
 	echo "usage: $0 [options] <board> <commits>"
