@@ -45,3 +45,24 @@ parse_commitish() {
 		fi
 	done
 }
+
+has_patches() {
+	local ARG
+	for ARG in "$@"; do
+		if [[ "$ARG" == *.patch ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+extract_patches_modified_files() {
+	local ARG
+	for ARG in "$@"; do
+		git apply --numstat "$ARG" 2>/dev/null | awk '{print $3}'
+	done
+}
+
+extract_commits_modified_files() {
+	git diff --name-only "$@"
+}

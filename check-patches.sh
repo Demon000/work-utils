@@ -3,10 +3,13 @@
 SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
+. "$SCRIPT_DIR/commit-utils.sh"
+
 print_help() {
-	echo "usage: $0 [options] <board> <commits>"
+	echo "usage: $0 [options] <board> <commits|patches>"
 	echo "board: passed to build.sh"
 	echo "commits: commit range to check"
+	echo "patches: patches to check"
 }
 
 
@@ -18,27 +21,24 @@ if [[ -z "$BOARD" ]]; then
 	exit 1
 fi
 
-COMMITS="$1"
-shift
-
-if [[ -z "$COMMITS" ]]; then
-	print_help
-	exit 1
-fi
-
-FILES=$(git diff --name-only "$COMMITS")
-
 if [[ ! -d "$SCRIPT_DIR/venv" ]]; then
 	python3 -m venv "$SCRIPT_DIR/venv"
 fi
 
-./scripts/checkpatch.pl --strict -g "$COMMITS"
+if has_patches "$@"; then
+	mapfile -t FILES < <(extract_patches_modified_files "$@")
+	FILES=$(extract_patches_modified_files "$@")
+	./scripts/checkpatch.pl --strict "${FILES[@]}"
+else
+	mapfile -t FILES < <(extract_commits_modified_files "$@")
+	./scripts/checkpatch.pl --strict -g "$@"
+fi
 
 . "$SCRIPT_DIR/venv/bin/activate"
 pip install --upgrade dtschema > /dev/null 2>&1
 
 DT_SCHEMA_FILES=()
-while read FILE; do
+for FILE in "${FILES[@]}"; do
 	case "$FILE" in
 	*.yaml)
 		RELATIVE_YAML="${FILE#Documentation/devicetree/bindings/}"
@@ -49,7 +49,7 @@ while read FILE; do
 		fi
 		;;
 	esac
-done <<< "$FILES"
+done
 
 DT_SCHEMA_FILES_STR=$(IFS=: ; echo "${DT_SCHEMA_FILES[*]}")
 
