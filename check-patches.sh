@@ -28,10 +28,10 @@ fi
 if has_patches "$@"; then
 	mapfile -t FILES < <(extract_patches_modified_files "$@")
 	FILES=$(extract_patches_modified_files "$@")
-	./scripts/checkpatch.pl --strict "${FILES[@]}"
+	./scripts/checkpatch.pl --strict --ignore "GERRIT_CHANGE_ID" "${FILES[@]}"
 else
 	mapfile -t FILES < <(extract_commits_modified_files "$@")
-	./scripts/checkpatch.pl --strict -g "$@"
+	./scripts/checkpatch.pl --strict --ignore "GERRIT_CHANGE_ID" -g "$@"
 fi
 
 . "$SCRIPT_DIR/venv/bin/activate"
