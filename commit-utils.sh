@@ -1,15 +1,15 @@
 get_change_id() {
-    awk '/^Change-Id:/ {print $2; exit}'
+	awk '/^Change-Id:/ {print $2; exit}'
 }
 
 remove_change_id_from_file() {
-    local FILE="$1"
-    sed -i '/^Change-Id:/d' "$FILE"
+	local FILE="$1"
+	sed -i '/^Change-Id:/d' "$FILE"
 }
 
 insert_after_separator() {
 	local FILE="$1"
-    local CONTENT="$2"
+	local CONTENT="$2"
 
 	UPDATED=$(awk -v CONTENT="$CONTENT" '
 		/^---$/ && !done {
@@ -30,18 +30,18 @@ parse_commitish() {
 	local -n _COMMITS=$1
 	shift
 
-    _COMMITS=()
+	_COMMITS=()
 
-    local COMMITISH
-    for COMMITISH in "$@"; do
-        if [[ "$COMMITISH" == *..* ]]; then
-            while IFS= read -r COMMIT; do
-                _COMMITS+=("$COMMIT")
-            done < <(git rev-list --reverse "$COMMITISH")
-        else
-            while IFS= read -r COMMIT; do
-                _COMMITS+=("$COMMIT")
-            done < <(git rev-list --no-walk "$COMMITISH")
-        fi
-    done
+	local COMMITISH
+	for COMMITISH in "$@"; do
+		if [[ "$COMMITISH" == *..* ]]; then
+			while IFS= read -r COMMIT; do
+				_COMMITS+=("$COMMIT")
+			done < <(git rev-list --reverse "$COMMITISH")
+		else
+			while IFS= read -r COMMIT; do
+				_COMMITS+=("$COMMIT")
+			done < <(git rev-list --no-walk "$COMMITISH")
+		fi
+	done
 }
