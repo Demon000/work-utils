@@ -55,6 +55,6 @@ DT_SCHEMA_FILES_STR=$(IFS=: ; echo "${DT_SCHEMA_FILES[*]}")
 
 if [ -n "$DT_SCHEMA_FILES_STR" ]; then
 	echo "Testing devicetree bindings ${DT_SCHEMA_FILES[*]}"
-	"$SCRIPT_DIR"/build.sh "$BOARD" dt_binding_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
-	"$SCRIPT_DIR"/build.sh "$BOARD" dtbs_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
+	"$SCRIPT_DIR/build.sh" "$BOARD" dt_binding_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
+	"$SCRIPT_DIR/build.sh" "$BOARD" dtbs_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
 fi
