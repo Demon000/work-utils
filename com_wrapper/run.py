@@ -82,17 +82,23 @@ class Context:
         log_file.write(self.log)
         self.log_files[name] = log_file
 
-    def write_log_history(self, data: bytes, current_data: bytes):
+    def write_log_history(
+        self,
+        data: bytes,
+        current_data: bytes | None = None,
+    ):
         for log_file in self.log_files.values():
             log_file.seek(self.log_history_pos, os.SEEK_SET)
             log_file.truncate()
             log_file.write(data)
-            log_file.write(current_data)
+            if current_data is not None:
+                log_file.write(current_data)
             log_file.flush()
 
-        self.log = self.log[:self.log_history_pos]
+        self.log = self.log[: self.log_history_pos]
         self.log += data
-        self.log += current_data
+        if current_data is not None:
+            self.log += current_data
         self.log_history_pos += len(data)
 
     def reset_logs(self):
@@ -303,6 +309,9 @@ def process_input_output(
 
             os.write(stdout_fd, data)
             vterm_lib.vterm_input_write(vterm, data, len(data))
+
+    screen_data = get_vterm_screen_data(vterm, vterm_screen)
+    context.write_log_history(screen_data)
 
     vterm_lib.vterm_free(vterm)
 
