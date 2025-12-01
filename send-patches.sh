@@ -41,6 +41,10 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	-v*)
+		VERSION="${1#-v}"
+		shift
+		;;
 	-o | --output)
 		OUTPUT_PATH="$2"
 		shift
