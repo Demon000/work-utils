@@ -6,6 +6,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 . "$SCRIPT_DIR/commit-utils.sh"
 . "$SCRIPT_DIR/meta-utils.sh"
 . "$SCRIPT_DIR/dtb-utils.sh"
+. "$SCRIPT_DIR/print-utils.sh"
 
 print_help() {
 	echo "usage: $0 [options] <board> <commits>"
@@ -90,11 +91,11 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 	TITLE=$(git log -1 --pretty=format:%s "$COMMIT")
 	MESSAGE=$(git log -1 --pretty=format:%b "$COMMIT")
 	if [[ "$MESSAGE" != *"Signed-off-by:"* ]]; then
-		echo "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
+		red "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
 		exit 1
 	fi
 	if [[ "$MESSAGE" == *"Reviewed-by:"* && -z "$VERSION" ]]; then
-		echo "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
+		red "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
 		exit 1
 	fi
 done
