@@ -85,8 +85,6 @@ if [[ -z "$COMMITS" ]]; then
 	exit 1
 fi
 
-"$SCRIPT_DIR"/check-patches.sh "$BOARD" "$COMMITS"
-
 for COMMIT in $(git rev-list "$COMMITS"); do
 	TITLE=$(git log -1 --pretty=format:%s "$COMMIT")
 	MESSAGE=$(git log -1 --pretty=format:%b "$COMMIT")
@@ -117,6 +115,8 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 		red "Commit $COMMIT ($TITLE) has no version notes for V$VERSION."
 	fi
 done
+
+"$SCRIPT_DIR"/check-patches.sh "$BOARD" "$COMMITS"
 
 FORMAT_PATCH_ARGS=()
 
