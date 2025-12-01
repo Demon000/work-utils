@@ -103,10 +103,6 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 	fi
 
 	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
-	if [ -n "$META_CONTENT" ]; then
-		insert_after_separator "$CODE_PATCH" "$META_CONTENT"
-	fi
-
 	if [[ -z "$VERSION" && "$META_CONTENT" =~ ^V[0-9]+: ]]; then
 		red "Commit $COMMIT ($TITLE) has version notes on V0."
 		exit 1
