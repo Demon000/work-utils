@@ -4,3 +4,5 @@ ply
 gitpython
 pydantic
 dtschema
+PyYAML
+types-PyYAML

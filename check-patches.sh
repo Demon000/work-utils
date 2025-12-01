@@ -34,6 +34,7 @@ fi
 install_dtschema
 
 DT_SCHEMA_FILES=()
+DT_COMPATIBLES=()
 for FILE in "${FILES[@]}"; do
 	case "$FILE" in
 	*.yaml)
@@ -42,6 +43,10 @@ for FILE in "${FILES[@]}"; do
 			echo "$FILE not under Documentation/devicetree/bindings/, skip check..."
 		else
 			DT_SCHEMA_FILES+=("$RELATIVE_YAML")
+
+			while IFS= read -r COMPATIBLE; do
+				DT_COMPATIBLES+=( "$COMPATIBLE" )
+			done < <( "$SCRIPT_DIR/extract_compatibles.py" "$FILE" )
 		fi
 		;;
 	esac
@@ -52,5 +57,31 @@ DT_SCHEMA_FILES_STR=$(IFS=: ; echo "${DT_SCHEMA_FILES[*]}")
 if [ -n "$DT_SCHEMA_FILES_STR" ]; then
 	echo "Testing devicetree bindings ${DT_SCHEMA_FILES[*]}"
 	"$SCRIPT_DIR/build.sh" "$BOARD" dt_binding_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
-	"$SCRIPT_DIR/build.sh" "$BOARD" dtbs_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
 fi
+
+while IFS= read -r DTS; do
+	case "$DTS" in
+		*/arch/*/boot/dts/*)
+			PREFIX="${DTS%%/boot/dts/*}/boot/dts/"
+			REL="${DTS#$PREFIX}"
+			;;
+		*)
+			continue
+			;;
+	esac
+
+	case "$REL" in
+		*.dts)
+			TARGET="${REL%.dts}.dtb"
+			;;
+		*.dtso)
+			TARGET="${REL%.dtso}.dtbo"
+			;;
+		*)
+			continue
+			;;
+	esac
+
+	echo "Checking $DTS"
+	"$SCRIPT_DIR/build.sh" "$BOARD" CHECK_DTBS=1 "$TARGET" DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
+done < <( "$SCRIPT_DIR/find_compatible_dts.py" "." "${DT_COMPATIBLES[@]}" )
