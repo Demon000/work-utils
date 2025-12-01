@@ -1,5 +1,10 @@
 #!/bin/bash
 
+SCRIPT_PATH=$(realpath "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+. "$SCRIPT_DIR/board-utils.sh"
+
 POSITIONAL_ARGS=()
 
 print_usage() {
@@ -91,17 +96,20 @@ fi
 
 TARGETS=("$@")
 
+BOARD_ARCH=$(get_board_arch "$BOARD_TYPE")
+if [[ -z "$BOARD_ARCH" ]]; then
+	red "Invalid board $BOARD_TYPE"
+	exit 1
+fi
+
 if [[ -z "$TARGETS" ]]; then
-	if [[ "$BOARD_TYPE" = "rpi3" ]]; then
+	if [[ "$BOARD_ARCH" = "arm64" ]]; then
 		TARGETS+=("$ZIMAGE_TARGET")
-	elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
-		TARGETS+=("$ZIMAGE_TARGET")
-	elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
+	elif [[ "$BOARD_ARCH" = "arm" ]]; then
 		TARGETS+=("$IMAGE_TARGET")
-	elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
-		TARGETS+=("$IMAGE_TARGET")
-	elif [[ "$BOARD_TYPE" = "arm64" ]]; then
-		TARGETS+=("$IMAGE_TARGET")
+	else
+		red "Invalid arch $BOARD_ARCH"
+		exit 1
 	fi
 
 	if [[ -n "$MODULES_PATH" ]]; then
@@ -118,26 +126,24 @@ if [[ -z "$TARGETS" ]]; then
 fi
 
 O_OPT=()
+O_OPT+=(ARCH="$BOARD_ARCH")
+
+if [[ "$BOARD_ARCH" = "arm64" ]]; then
+	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
+elif [[ "$BOARD_ARCH" = "arm" ]]; then
+	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
+else
+	exit 1
+fi
 
 if [[ "$BOARD_TYPE" = "rpi3" ]]; then
-	O_OPT+=(ARCH="arm")
 	O_OPT+=(KERNEL="kernel7")
-	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
 elif [[ "$BOARD_TYPE" = "rpi4" ]]; then
-	O_OPT+=(ARCH="arm")
 	O_OPT+=(KERNEL="kernel7l")
-	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
 elif [[ "$BOARD_TYPE" = "rpi4-64" ]]; then
-	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel8")
-	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 elif [[ "$BOARD_TYPE" = "rpi5" ]]; then
-	O_OPT+=(ARCH="arm64")
 	O_OPT+=(KERNEL="kernel_2712")
-	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
-elif [[ "$BOARD_TYPE" = "arm64" ]]; then
-	O_OPT+=(ARCH="arm64")
-	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 fi
 
 if [[ -n "$KERNEL_LOCALVERSION" ]]; then
