@@ -5,6 +5,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 . "$SCRIPT_DIR/commit-utils.sh"
 . "$SCRIPT_DIR/dtb-utils.sh"
+. "$SCRIPT_DIR/board-utils.sh"
 
 print_help() {
 	echo "usage: $0 [options] <board> <commits|patches>"
@@ -59,9 +60,12 @@ if [ -n "$DT_SCHEMA_FILES_STR" ]; then
 	"$SCRIPT_DIR/build.sh" "$BOARD" dt_binding_check DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
 fi
 
+BOARD_ARCH=$(get_board_arch "$BOARD")
+
 while IFS= read -r DTS; do
+	echo "$DTS"
 	case "$DTS" in
-		*/arch/*/boot/dts/*)
+		*/arch/$BOARD_ARCH/boot/dts/*)
 			PREFIX="${DTS%%/boot/dts/*}/boot/dts/"
 			REL="${DTS#$PREFIX}"
 			;;
