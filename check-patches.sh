@@ -32,6 +32,8 @@ else
 	./scripts/checkpatch.pl --strict --ignore "GERRIT_CHANGE_ID" -g "$@"
 fi
 
+echo
+
 install_dtschema
 
 DT_SCHEMA_FILES=()
