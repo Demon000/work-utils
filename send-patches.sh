@@ -168,12 +168,6 @@ while IFS= read -r CODE_PATCH; do
 	fi
 done <<<"$CODE_PATCHES"
 
-if [[ -n "$COVER_PATCH" ]]; then
-	echo "Cover: $COVER_PATCH"
-fi
-echo "Patches:"
-echo "$CODE_PATCHES"
-
 echo "Select who to send the patches to."
 TOS=$(./scripts/get_maintainer.pl --interactive --norolestats -nol $CODE_PATCHES)
 
@@ -193,6 +187,12 @@ while read CC; do
 	CC=$(echo "$CC" | tr -d '"')
 	SEND_ARGS+=("--cc=$CC")
 done <<<"$CCS"
+
+if [[ -n "$COVER_PATCH" ]]; then
+	echo "Cover: $COVER_PATCH"
+fi
+echo "Patches:"
+echo "$CODE_PATCHES"
 
 echo "Do you wish to send the patches?"
 select yn in "Yes" "No"; do
