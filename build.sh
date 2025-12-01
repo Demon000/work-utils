@@ -104,9 +104,9 @@ fi
 
 if [[ -z "$TARGETS" ]]; then
 	if [[ "$BOARD_ARCH" = "arm64" ]]; then
-		TARGETS+=("$ZIMAGE_TARGET")
-	elif [[ "$BOARD_ARCH" = "arm" ]]; then
 		TARGETS+=("$IMAGE_TARGET")
+	elif [[ "$BOARD_ARCH" = "arm" ]]; then
+		TARGETS+=("$ZIMAGE_TARGET")
 	else
 		red "Invalid arch $BOARD_ARCH"
 		exit 1
