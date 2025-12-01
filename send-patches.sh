@@ -98,6 +98,24 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 		red "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
 		exit 1
 	fi
+
+	CHANGE_ID=$(get_git_change_id "$COMMIT")
+	if [[ -z "$CHANGE_ID" ]]; then
+		continue
+	fi
+
+	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
+	if [ -n "$META_CONTENT" ]; then
+		insert_after_separator "$CODE_PATCH" "$META_CONTENT"
+	fi
+
+	if [[ -z "$VERSION" && "$META_CONTENT" =~ ^V[0-9]+: ]]; then
+		red "Commit $COMMIT ($TITLE) has version notes on V0."
+		exit 1
+	fi
+	if [[ -n "$VERSION" && ! ( "$META_CONTENT" =~ ^V$VERSION: ) ]]; then
+		red "Commit $COMMIT ($TITLE) has no version notes for V$VERSION."
+	fi
 done
 
 FORMAT_PATCH_ARGS=()
@@ -145,14 +163,6 @@ while IFS= read -r CODE_PATCH; do
 	remove_change_id_from_file "$CODE_PATCH"
 
 	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
-	if [[ -z "$VERSION" && "$META_CONTENT" =~ ^V[0-9]+: ]]; then
-		echo "Commit $COMMIT ($TITLE) has version notes on V0."
-		exit 1
-	fi
-	if [[ -n "$VERSION" && ! ( "$META_CONTENT" =~ ^V$VERSION: ) ]]; then
-		echo "Commit $COMMIT ($TITLE) has no version notes for V$VERSION."
-		exit 1
-	fi
 	if [ -n "$META_CONTENT" ]; then
 		insert_after_separator "$CODE_PATCH" "$META_CONTENT"
 	fi
