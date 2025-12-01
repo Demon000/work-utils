@@ -144,6 +144,14 @@ while IFS= read -r CODE_PATCH; do
 	remove_change_id_from_file "$CODE_PATCH"
 
 	META_CONTENT=$(get_change_id_meta_content "$CHANGE_ID")
+	if [[ -z "$VERSION" && "$META_CONTENT" =~ ^V[0-9]+: ]]; then
+		echo "Commit $COMMIT ($TITLE) has version notes on V0."
+		exit 1
+	fi
+	if [[ -n "$VERSION" && ! ( "$META_CONTENT" =~ ^V$VERSION: ) ]]; then
+		echo "Commit $COMMIT ($TITLE) has no version notes for V$VERSION."
+		exit 1
+	fi
 	if [ -n "$META_CONTENT" ]; then
 		insert_after_separator "$CODE_PATCH" "$META_CONTENT"
 	fi
