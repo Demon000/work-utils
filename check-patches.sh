@@ -90,4 +90,5 @@ while IFS= read -r DTS; do
 
 	echo "Checking $DTS"
 	"$SCRIPT_DIR/build.sh" "$BOARD" CHECK_DTBS=1 "$TARGET" DT_SCHEMA_FILES="$DT_SCHEMA_FILES_STR"
+	echo
 done < <( "$SCRIPT_DIR/find_compatible_dts.py" "." "${DT_COMPATIBLES[@]}" )
