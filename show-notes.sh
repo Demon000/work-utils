@@ -22,7 +22,7 @@ COMMITS=()
 parse_commitish COMMITS "$@"
 
 for COMMIT in "${COMMITS[@]}"; do
-	CHANGE_ID=$(git log -1 --format=%B "$COMMIT" | get_change_id)
+	CHANGE_ID=$(get_git_change_id "$COMMIT")
 	if [[ -z "$CHANGE_ID" ]]; then
 		echo "Skipping $COMMIT: no Change-Id found" >&2
 		continue

@@ -2,6 +2,11 @@ get_change_id() {
 	awk '/^Change-Id:/ {print $2; exit}'
 }
 
+get_git_change_id() {
+	COMMIT="$1"
+	git log -1 --format=%B "$COMMIT" | get_change_id
+}
+
 remove_change_id_from_file() {
 	local FILE="$1"
 	sed -i '/^Change-Id:/d' "$FILE"
