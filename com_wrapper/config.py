@@ -39,16 +39,24 @@ RunConfig = (
 )
 
 
-class MatchConfig(FrozenStrictModel):
-    type: Literal['match']
-    value: str
+class BaseMatchConfig(FrozenStrictModel):
     run: Optional[tuple[RunConfig, ...]] = None
     oneshot: Optional[bool] = None
     reset_logs: Optional[bool] = None
     reset_oneshots: Optional[bool] = None
 
 
-ActionConfig = MatchConfig
+class MatchConfig(BaseMatchConfig):
+    type: Literal['match']
+    value: str
+
+
+class RegexMatchConfig(BaseMatchConfig):
+    type: Literal['match_regex']
+    value: str
+
+
+ActionConfig = MatchConfig | RegexMatchConfig
 
 
 class Config(FrozenStrictModel):

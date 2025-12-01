@@ -5,6 +5,7 @@ import fcntl
 import logging
 import os
 import pty
+import re
 import select
 import struct
 import subprocess
@@ -227,9 +228,16 @@ def match_buffer_actions(
         if action in context.oneshot_actions_matched:
             continue
 
-        if action.type == 'match':
+        if action.type == 'match' or action.type == 'match_regex':
             encoded_value = action.value.encode()
-            found_index = buf.find(encoded_value)
+            if action.type == 'match':
+                found_index = buf.find(encoded_value)
+            elif action.type == 'match_regex':
+                m = re.search(encoded_value, buf)
+                found_index = m.start() if m else -1
+            else:
+                assert False
+
             if found_index == -1:
                 continue
 
