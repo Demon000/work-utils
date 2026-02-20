@@ -62,4 +62,5 @@ ActionConfig = MatchConfig | RegexMatchConfig
 class Config(FrozenStrictModel):
     write_char_delay_us: int
     program: tuple[str, ...]
+    args: dict[str, str]
     actions: tuple[ActionConfig, ...]

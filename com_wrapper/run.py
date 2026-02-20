@@ -424,6 +424,9 @@ def main():
 
     logging.info(f'Config: {config.model_dump_json(indent=4)}')
 
+    for k, v in config.args.items():
+        context.set_arg(k, v)
+
     for kv in args.arg:
         assert isinstance(kv, str)
         k, v = kv.split('=', 1)
