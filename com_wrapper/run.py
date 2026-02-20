@@ -361,6 +361,9 @@ def setup_tftp(config: Config, context: Context):
             dst_file_path,
             src_file_path,
         ) in config.tftp.mounts:
+            dst_file_path = replace_str_args(context, dst_file_path)
+            src_file_path = replace_str_args(context, src_file_path)
+
             logging.debug(f'TFTP trying {src_file_path} -> {dst_file_path}')
 
             if src_file_path[0] == '/':
