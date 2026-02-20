@@ -478,7 +478,7 @@ def main():
         '--arg',
         metavar='KEY=VALUE',
         help='Add argument with KEY and VALUE',
-        nargs='*',
+        action='append',
         default=[],
     )
     args = parser.parse_args()
