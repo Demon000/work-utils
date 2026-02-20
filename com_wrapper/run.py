@@ -195,8 +195,8 @@ def run_write_action(
 
     if run.needed_args:
         data = replace_bytes_args(context, data, run.needed_args)
-        if not data:
-            return
+    if not data:
+        return
 
     logging.debug(f'Writing: `{data.decode()}`')
     for c in data:
