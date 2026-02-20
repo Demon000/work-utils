@@ -15,7 +15,7 @@ import traceback
 import tty
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Any, BinaryIO, Iterable
+from typing import Any, BinaryIO, Callable, Iterable, TypeVar
 
 import json5
 from config import (
@@ -117,23 +117,47 @@ def get_terminal_size(fd: int) -> tuple[int, int, int, int]:
     return struct.unpack('HHHH', data)
 
 
+T = TypeVar('T', str, bytes)
+
+
+def _replace_text(
+    args: dict[str, str],
+    data: T,
+    needed_args: Iterable[str],
+    make_replacee: Callable[[str], T],
+    make_replacement: Callable[[str], T],
+) -> T:
+    logging.debug(f'Replacing args in: {data!r}')
+
+    for arg in needed_args:
+        if arg not in args:
+            logging.warning(f'Arg {arg} not in context')
+            return type(data)()  # '' or b''
+
+        replacee = make_replacee(arg)
+        replacement = make_replacement(args[arg])
+
+        if replacee not in data:
+            continue
+
+        logging.debug(f'Replacing `{str(replacee)}` with `{str(replacement)}`')
+        data = data.replace(replacee, replacement)
+
+    return data
+
+
 def replace_str_args(
     context: Context,
     data: str,
     needed_args: Iterable[str],
 ):
-    logging.debug(f'Replacing args in: {data}')
-    for arg in needed_args:
-        if arg not in context.args:
-            logging.warning(f'Arg {arg} not in context')
-            return ''
-
-        replacee = f'{{{arg}}}'
-        replacement = context.args[arg]
-        logging.debug(f'Replacing `{replacee}` with `{replacement}`')
-        data = data.replace(replacee, replacement)
-
-    return data
+    return _replace_text(
+        context.args,
+        data,
+        needed_args,
+        make_replacee=lambda a: f'${{{a}}}',
+        make_replacement=lambda v: v,
+    )
 
 
 def replace_bytes_args(
@@ -141,18 +165,13 @@ def replace_bytes_args(
     data: bytes,
     needed_args: Iterable[str],
 ):
-    logging.debug(f'Replacing args in: {data.decode()}')
-    for arg in needed_args:
-        if arg not in context.args:
-            logging.warning(f'Arg {arg} not in context')
-            return b''
-
-        replacee = f'{{{arg}}}'
-        replacement = context.args[arg]
-        logging.debug(f'Replacing `{replacee}` with `{replacement}`')
-        data = data.replace(replacee.encode(), replacement.encode())
-
-    return data
+    return _replace_text(
+        context.args,
+        data,
+        needed_args,
+        make_replacee=lambda a: f'${{{a}}}'.encode(),
+        make_replacement=lambda v: v.encode(),
+    )
 
 
 def run_write_action(
