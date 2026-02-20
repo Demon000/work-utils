@@ -117,7 +117,7 @@ def get_terminal_size(fd: int) -> tuple[int, int, int, int]:
     return struct.unpack('HHHH', data)
 
 
-def replace_bytes_str(
+def replace_str_args(
     context: Context,
     data: str,
     needed_args: Iterable[str],
@@ -168,7 +168,7 @@ def run_write_action(
     elif run.type == 'write_from_file':
         name = run.value
         if run.needed_args:
-            name = replace_bytes_str(context, name, run.needed_args)
+            name = replace_str_args(context, name, run.needed_args)
         if not name:
             return
         file_path = Path(context.config_path.parent, name)
@@ -209,7 +209,7 @@ def run_action(
         elif run.type == 'add_log_file':
             name = run.name
             if run.needed_args:
-                name = replace_bytes_str(context, name, run.needed_args)
+                name = replace_str_args(context, name, run.needed_args)
             if not name:
                 return
             context.add_log(name)
