@@ -15,6 +15,8 @@ import traceback
 import tty
 from argparse import ArgumentParser
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from threading import Thread
 from typing import Any, BinaryIO, Callable, Iterable, Optional, TypeVar
 
 import json5
@@ -346,6 +348,65 @@ def process_input_output(
     vterm_lib.vterm_free(vterm)
 
 
+def setup_tftp(config: Config, context: Context):
+    import tftpy  # type: ignore
+
+    def dyn_file_func(file_path: str, raddress: str, rport: int):
+        logging.debug(f'TFTP requested path {file_path}')
+        if file_path[0] == '/':
+            file_path = file_path[1:]
+
+        fp = Path(file_path)
+        for (
+            dst_file_path,
+            src_file_path,
+        ) in config.tftp.mounts:
+            logging.debug(f'TFTP trying {src_file_path} -> {dst_file_path}')
+
+            if src_file_path[0] == '/':
+                src_file_path = src_file_path[1:]
+
+            dp = Path(dst_file_path)
+            sp = Path(src_file_path)
+
+            if fp == sp:
+                real = dp
+            elif fp.is_relative_to(sp):
+                rp = fp.relative_to(sp)
+                real = dp.joinpath(rp)
+            else:
+                continue
+
+            logging.debug(f'TFTP resolved: {real}')
+
+            real = real.resolve()
+            if not real.is_relative_to(dp):
+                logging.debug(f'TFTP path outside of destination: {real}')
+                continue
+
+            if not real.exists():
+                logging.debug(f'TFTP path does not exist: {real}')
+                return None
+
+            return real.open('rb')
+
+        return None
+
+    def tftp_thread():
+        with TemporaryDirectory(prefix='tftp-') as tmp_root:
+            server = tftpy.TftpServer(tmp_root, dyn_file_func=dyn_file_func)
+            server_ip = replace_str_args(context, config.tftp.server_ip)
+            server_port = replace_str_args(context, config.tftp.server_port)
+            server.listen(server_ip, int(server_port))
+
+    t = Thread(
+        target=tftp_thread,
+        name='tftp-server',
+        daemon=True,
+    )
+    t.start()
+
+
 def run_wrapper(config: Config, context: Context):
     master_fd, slave_fd = pty.openpty()
     stdin_fd = sys.stdin.fileno()
@@ -435,6 +496,7 @@ def main():
         k, v = kv.split('=', 1)
         context.set_arg(k, v)
 
+    setup_tftp(config, context)
     run_wrapper(config, context)
 
 

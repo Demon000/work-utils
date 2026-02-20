@@ -6,3 +6,4 @@ pydantic
 dtschema
 PyYAML
 types-PyYAML
+tftpy

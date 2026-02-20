@@ -59,8 +59,15 @@ class RegexMatchConfig(BaseMatchConfig):
 ActionConfig = MatchConfig | RegexMatchConfig
 
 
+class TftpConfig(BaseMatchConfig):
+    mounts: list[tuple[str, str]]
+    server_ip: str
+    server_port: str
+
+
 class Config(FrozenStrictModel):
     write_char_delay_us: int
     program: tuple[str, ...]
     args: dict[str, str]
+    tftp: TftpConfig
     actions: tuple[ActionConfig, ...]
