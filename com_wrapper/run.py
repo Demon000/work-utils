@@ -15,7 +15,7 @@ import traceback
 import tty
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Any, BinaryIO, Callable, Iterable, TypeVar
+from typing import Any, BinaryIO, Callable, Iterable, Optional, TypeVar
 
 import json5
 from config import (
@@ -123,11 +123,14 @@ T = TypeVar('T', str, bytes)
 def _replace_text(
     args: dict[str, str],
     data: T,
-    needed_args: Iterable[str],
+    needed_args: Optional[Iterable[str]],
     make_replacee: Callable[[str], T],
     make_replacement: Callable[[str], T],
 ) -> T:
     logging.debug(f'Replacing args in: {data!r}')
+
+    if needed_args is None:
+        needed_args = args
 
     for arg in needed_args:
         if arg not in args:
@@ -149,7 +152,7 @@ def _replace_text(
 def replace_str_args(
     context: Context,
     data: str,
-    needed_args: Iterable[str],
+    needed_args: Optional[Iterable[str]] = None,
 ):
     return _replace_text(
         context.args,
@@ -163,7 +166,7 @@ def replace_str_args(
 def replace_bytes_args(
     context: Context,
     data: bytes,
-    needed_args: Iterable[str],
+    needed_args: Optional[Iterable[str]] = None,
 ):
     return _replace_text(
         context.args,
