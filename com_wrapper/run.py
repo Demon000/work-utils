@@ -11,6 +11,7 @@ import struct
 import subprocess
 import sys
 import termios
+import time
 import traceback
 import tty
 from argparse import ArgumentParser
@@ -429,6 +430,73 @@ def setup_tftp(config: Config, context: Context, stop_event: Event):
     return t
 
 
+def nfs_thread_fn(conf_text: str, stop_event: Event):
+    with TemporaryDirectory(prefix='nfs-') as tmpdir:
+        conf_path = Path(tmpdir) / 'ganesha.conf'
+        conf_path.write_text(conf_text)
+
+        proc = subprocess.Popen(
+            [
+                'ganesha.nfsd',
+                '-F',
+                '-f',
+                str(conf_path),
+            ]
+        )
+
+        try:
+            while proc.poll() is None and not stop_event.is_set():
+                time.sleep(0.5)
+
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+
+
+def setup_nfs(
+    config: Config,
+    context: Context,
+    stop_event: Event,
+):
+    server_ip = replace_str_args(context, config.nfs.server_ip)
+    server_port = replace_str_args(context, config.nfs.server_port)
+
+    conf_text = f"""
+NFS_Core_Param {{
+    Bind_addr = {server_ip};
+    NFS_Port = {server_port};
+}}
+
+EXPORT {{
+    Export_Id = 1;
+    Path = {config.nfs.path};
+    Pseudo = {config.nfs.pseudo};
+    Access_Type = RW;
+    Squash = No_Root_Squash;
+    Protocols = 3,4;
+    Transports = TCP;
+    FSAL {{
+        Name = VFS;
+    }}
+}}
+"""
+    t = Thread(
+        target=nfs_thread_fn,
+        args=(conf_text, stop_event),
+        name='nfs-server',
+    )
+    t.start()
+
+    return t
+
+
 def run_wrapper(config: Config, context: Context):
     master_fd, slave_fd = pty.openpty()
     stdin_fd = sys.stdin.fileno()
@@ -533,10 +601,12 @@ def main():
     stop_event = Event()
 
     tftp_thread = setup_tftp(config, context, stop_event)
+    nfs_thread = setup_nfs(config, context, stop_event)
     run_wrapper(config, context)
 
     stop_event.set()
     tftp_thread.join()
+    nfs_thread.join()
 
 
 if __name__ == '__main__':

@@ -65,9 +65,17 @@ class TftpConfig(BaseMatchConfig):
     server_port: str
 
 
+class NfsConfig(BaseMatchConfig):
+    path: str
+    pseudo: str
+    server_ip: str
+    server_port: str
+
+
 class Config(FrozenStrictModel):
     write_char_delay_us: int
     program: tuple[str, ...]
     args: dict[str, str]
     tftp: TftpConfig
+    nfs: NfsConfig
     actions: tuple[ActionConfig, ...]
