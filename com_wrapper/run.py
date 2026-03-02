@@ -43,12 +43,7 @@ from vterm_bindings import (
 MAX_BUF_LEN = 4096
 CHUNK_LEN = 1024
 
-logging.basicConfig(
-    filename='log.txt',
-    filemode='w',
-    level=logging.DEBUG,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-)
+logging.getLogger('tftpy').setLevel(logging.WARNING)
 
 
 class Context:
@@ -481,6 +476,11 @@ def main():
         action='append',
         default=[],
     )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug logging',
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -488,6 +488,13 @@ def main():
     config_json5 = json5.loads(config_data)  # type: ignore
     config = Config.model_validate(config_json5)  # type: ignore
     context = Context(config_path)
+
+    logging.basicConfig(
+        filename='log.txt',
+        filemode='w',
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+    )
 
     logging.info(f'Config: {config.model_dump_json(indent=4)}')
 
