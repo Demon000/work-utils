@@ -14,9 +14,10 @@ import termios
 import traceback
 import tty
 from argparse import ArgumentParser
+from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from threading import Thread
+from threading import Event, Thread
 from typing import Any, BinaryIO, Callable, Iterable, Optional, TypeVar
 
 import json5
@@ -343,66 +344,89 @@ def process_input_output(
     vterm_lib.vterm_free(vterm)
 
 
-def setup_tftp(config: Config, context: Context):
+def dyn_file_func(
+    config: Config,
+    context: Context,
+    file_path: str,
+    raddress: str,
+    rport: int,
+):
+    logging.debug(f'TFTP requested path {file_path}')
+    if file_path[0] == '/':
+        file_path = file_path[1:]
+
+    fp = Path(file_path)
+    for (
+        dst_file_path,
+        src_file_path,
+    ) in config.tftp.mounts:
+        dst_file_path = replace_str_args(context, dst_file_path)
+        src_file_path = replace_str_args(context, src_file_path)
+
+        logging.debug(f'TFTP trying {src_file_path} -> {dst_file_path}')
+
+        if src_file_path[0] == '/':
+            src_file_path = src_file_path[1:]
+
+        dp = Path(dst_file_path)
+        sp = Path(src_file_path)
+
+        if fp == sp:
+            real = dp
+        elif fp.is_relative_to(sp):
+            rp = fp.relative_to(sp)
+            real = dp.joinpath(rp)
+        else:
+            continue
+
+        logging.debug(f'TFTP resolved: {real}')
+
+        real = real.resolve()
+        if not real.is_relative_to(dp):
+            logging.debug(f'TFTP path outside of destination: {real}')
+            continue
+
+        if not real.exists():
+            logging.debug(f'TFTP path does not exist: {real}')
+            return None
+
+        return real.open('rb')
+
+    return None
+
+
+def tftp_thread_fn(config: Config, context: Context, stop_event: Event):
     import tftpy  # type: ignore
 
-    def dyn_file_func(file_path: str, raddress: str, rport: int):
-        logging.debug(f'TFTP requested path {file_path}')
-        if file_path[0] == '/':
-            file_path = file_path[1:]
+    with TemporaryDirectory(prefix='tftp-') as tmp_root:
+        dyn_file_func_fn = partial(dyn_file_func, config, context)
+        server = tftpy.TftpServer(tmp_root, dyn_file_func=dyn_file_func_fn)
+        server_ip = replace_str_args(context, config.tftp.server_ip)
+        server_port = replace_str_args(context, config.tftp.server_port)
 
-        fp = Path(file_path)
-        for (
-            dst_file_path,
-            src_file_path,
-        ) in config.tftp.mounts:
-            dst_file_path = replace_str_args(context, dst_file_path)
-            src_file_path = replace_str_args(context, src_file_path)
+        listen_t = Thread(
+            target=server.listen,
+            args=(server_ip, int(server_port)),
+            name='tftp-listen',
+        )
+        listen_t.start()
 
-            logging.debug(f'TFTP trying {src_file_path} -> {dst_file_path}')
+        stop_event.wait()
+        try:
+            server.stop()
+        finally:
+            listen_t.join()
 
-            if src_file_path[0] == '/':
-                src_file_path = src_file_path[1:]
 
-            dp = Path(dst_file_path)
-            sp = Path(src_file_path)
-
-            if fp == sp:
-                real = dp
-            elif fp.is_relative_to(sp):
-                rp = fp.relative_to(sp)
-                real = dp.joinpath(rp)
-            else:
-                continue
-
-            logging.debug(f'TFTP resolved: {real}')
-
-            real = real.resolve()
-            if not real.is_relative_to(dp):
-                logging.debug(f'TFTP path outside of destination: {real}')
-                continue
-
-            if not real.exists():
-                logging.debug(f'TFTP path does not exist: {real}')
-                return None
-
-            return real.open('rb')
-
-        return None
-
-    def tftp_thread():
-        with TemporaryDirectory(prefix='tftp-') as tmp_root:
-            server = tftpy.TftpServer(tmp_root, dyn_file_func=dyn_file_func)
-            server_ip = replace_str_args(context, config.tftp.server_ip)
-            server_port = replace_str_args(context, config.tftp.server_port)
-            server.listen(server_ip, int(server_port))
-
+def setup_tftp(config: Config, context: Context, stop_event: Event):
     t = Thread(
-        target=tftp_thread,
+        target=tftp_thread_fn,
+        args=(config, context, stop_event),
         name='tftp-server',
-        daemon=True,
     )
     t.start()
+
+    return t
 
 
 def run_wrapper(config: Config, context: Context):
@@ -506,8 +530,13 @@ def main():
         k, v = kv.split('=', 1)
         context.set_arg(k, v)
 
-    setup_tftp(config, context)
+    stop_event = Event()
+
+    tftp_thread = setup_tftp(config, context, stop_event)
     run_wrapper(config, context)
+
+    stop_event.set()
+    tftp_thread.join()
 
 
 if __name__ == '__main__':
