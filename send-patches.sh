@@ -19,6 +19,7 @@ print_help() {
 	echo "--prefix <subject_prefix>: add the specified prefix to the subject"
 	echo "--rfc: generate patches in rfc mode"
 	echo "--resend: generate patches in resend mode"
+	echo "-s|--skip-checks: skip Reviewed-by check"
 }
 
 POSITIONAL_ARGS=()
@@ -54,6 +55,10 @@ while [[ $# -gt 0 ]]; do
 	-p | --prefix)
 		SUBJECT_PREFIX="$2"
 		shift
+		shift
+		;;
+	-s | --skip-checks)
+		SKIP_CHECKS=1
 		shift
 		;;
 	-h | --help)
@@ -92,7 +97,7 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 		red "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
 		exit 1
 	fi
-	if [[ "$MESSAGE" == *"Reviewed-by:"* && -z "$VERSION" ]]; then
+	if [[ -z "$SKIP_CHECKS" && "$MESSAGE" == *"Reviewed-by:"* && -z "$VERSION" ]]; then
 		red "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
 		exit 1
 	fi
