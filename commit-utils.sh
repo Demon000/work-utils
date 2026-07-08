@@ -2,6 +2,16 @@ get_change_id() {
 	awk '/^Change-Id:/ {print $2; exit}'
 }
 
+has_commit_description() {
+	local COMMIT="$1"
+
+	local BODY_LINES TRAILER_LINES
+	BODY_LINES=$(git log -1 --format=%b "$COMMIT" | grep -c '[^[:space:]]')
+	TRAILER_LINES=$(git log -1 --format=%B "$COMMIT" | git interpret-trailers --parse | grep -c '[^[:space:]]')
+
+	((BODY_LINES > TRAILER_LINES))
+}
+
 get_git_change_id() {
 	COMMIT="$1"
 	git log -1 --format=%B "$COMMIT" | get_change_id

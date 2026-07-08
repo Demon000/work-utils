@@ -97,6 +97,10 @@ for COMMIT in $(git rev-list "$COMMITS"); do
 		red "Commit $COMMIT ($TITLE) is missing Signed-off-by line."
 		exit 1
 	fi
+	if ! has_commit_description "$COMMIT"; then
+		red "Commit $COMMIT ($TITLE) has an empty description (excluding trailers)."
+		exit 1
+	fi
 	if [[ -z "$SKIP_CHECKS" && "$MESSAGE" == *"Reviewed-by:"* && -z "$VERSION" ]]; then
 		red "Commit $COMMIT ($TITLE) has Reviewed-by line on V0."
 		exit 1
