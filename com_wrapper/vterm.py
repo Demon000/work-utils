@@ -21,7 +21,7 @@ def get_vterm_stripped_row(row_data: bytearray):
 def get_vterm_row_data(cols: int, cells: Any):
     data = bytearray()
     for i in range(cols):
-        data.append(cells[i].chars[0])
+        data.extend(chr(cells[i].chars[0]).encode())
 
     return data
 
@@ -51,7 +51,7 @@ def get_vterm_screen_data(vterm: VTerm, vterm_screen: VTermScreen):
                 pos,
                 ctypes.byref(cell),
             )
-            row_data.append(cell.chars[0])
+            row_data.extend(chr(cell.chars[0]).encode())
 
         stripped_row_data = get_vterm_stripped_row(row_data)
         data.extend(stripped_row_data)
