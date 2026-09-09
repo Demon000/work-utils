@@ -323,7 +323,7 @@ def process_input_output(
             buf_total_length += len(data)
 
             if len(buf) > MAX_BUF_LEN:
-                buf = buf[-MAX_BUF_LEN:]
+                del buf[:-MAX_BUF_LEN]
 
             match_buffer_actions(
                 config,
