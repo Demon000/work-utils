@@ -94,7 +94,7 @@ class Context:
                 log_file.write(current_data)
             log_file.flush()
 
-        self.log = self.log[: self.log_history_pos]
+        del self.log[self.log_history_pos :]
         self.log += data
         if current_data is not None:
             self.log += current_data
