@@ -368,7 +368,7 @@ def dyn_file_func(
         if src_file_path[0] == '/':
             src_file_path = src_file_path[1:]
 
-        dp = Path(dst_file_path)
+        dp = Path(dst_file_path).resolve()
         sp = Path(src_file_path)
 
         if fp == sp:
