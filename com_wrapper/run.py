@@ -490,6 +490,7 @@ def main():
     parser.add_argument(
         '-c',
         '--config',
+        required=True,
         help='Path to config.json5',
     )
     parser.add_argument(
