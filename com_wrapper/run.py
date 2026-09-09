@@ -45,6 +45,11 @@ from vterm_bindings import (
 MAX_BUF_LEN = 4096
 CHUNK_LEN = 1024
 
+# tftpy's TftpServer.listen() blocks in select() with this as the timeout
+# and only checks the stop flag once that select() call returns, so a
+# larger value here directly delays shutdown by up to that many seconds.
+TFTP_SHUTDOWN_POLL_INTERVAL_S = 0.5
+
 # get_vterm_screen_data() does a full rows*cols cell-by-cell FFI scan
 # (measured ~2ms for 80x24, ~11ms for 200x50) and runs synchronously inside
 # vterm_input_write()'s sb_pushline callback, once per scrolled line. During
@@ -445,13 +450,14 @@ def tftp_thread_fn(config: Config, context: Context, stop_event: Event):
         listen_t = Thread(
             target=server.listen,
             args=(server_ip, int(server_port)),
+            kwargs={'timeout': TFTP_SHUTDOWN_POLL_INTERVAL_S},
             name='tftp-listen',
         )
         listen_t.start()
 
         stop_event.wait()
         try:
-            server.stop()
+            server.stop(now=True)
         finally:
             listen_t.join()
 
