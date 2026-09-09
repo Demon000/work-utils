@@ -200,10 +200,14 @@ def run_write_action(
         return
 
     logging.debug(f'Writing: `{data.decode()}`')
-    for c in data:
-        if config.write_char_delay_us:
+    if config.write_char_delay_us:
+        for c in data:
             delay_us(config.write_char_delay_us)
-        os.write(master_fd, bytes((c,)))
+            os.write(master_fd, bytes((c,)))
+    else:
+        written = 0
+        while written < len(data):
+            written += os.write(master_fd, data[written:])
 
 
 def run_action(
