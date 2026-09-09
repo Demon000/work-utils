@@ -36,7 +36,6 @@ def get_vterm_size(vterm: VTerm):
 def get_vterm_screen_data(vterm: VTerm, vterm_screen: VTermScreen):
     rows, cols = get_vterm_size(vterm)
     pos = VTermPos()
-    cell = VTermScreenCell()
 
     data = bytearray()
     for row in range(rows):
@@ -46,12 +45,14 @@ def get_vterm_screen_data(vterm: VTerm, vterm_screen: VTermScreen):
         for col in range(cols):
             pos.col = col
 
-            vterm_lib.vterm_screen_get_cell(
+            cell = VTermScreenCell()
+            ok = vterm_lib.vterm_screen_get_cell(
                 vterm_screen,
                 pos,
                 ctypes.byref(cell),
             )
-            row_data.extend(chr(cell.chars[0]).encode())
+            char = chr(cell.chars[0]) if ok else ' '
+            row_data.extend(char.encode())
 
         stripped_row_data = get_vterm_stripped_row(row_data)
         data.extend(stripped_row_data)
