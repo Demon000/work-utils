@@ -231,7 +231,7 @@ def run_action(
             if run.needed_args:
                 name = replace_str_args(context, name, run.needed_args)
             if not name:
-                return
+                continue
             context.add_log(name)
         elif run.type == 'set_arg':
             context.set_arg(run.name, run.value)
