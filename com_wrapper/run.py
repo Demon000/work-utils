@@ -11,6 +11,7 @@ import struct
 import subprocess
 import sys
 import termios
+import time
 import traceback
 import tty
 from argparse import ArgumentParser
@@ -43,6 +44,15 @@ from vterm_bindings import (
 
 MAX_BUF_LEN = 4096
 CHUNK_LEN = 1024
+
+# get_vterm_screen_data() does a full rows*cols cell-by-cell FFI scan
+# (measured ~2ms for 80x24, ~11ms for 200x50) and runs synchronously inside
+# vterm_input_write()'s sb_pushline callback, once per scrolled line. During
+# a chatty burst (e.g. a fast boot log) that stalls the read loop for one
+# scan per line before it can go back to reading the next chunk. The
+# permanent scrollback history is still appended on every line regardless;
+# only this speculative "current screen" tail is rate-limited.
+SCREEN_SNAPSHOT_MIN_INTERVAL_S = 0.1
 
 logging.getLogger('tftpy').setLevel(logging.WARNING)
 
@@ -241,9 +251,22 @@ def run_action(
             context.set_arg(run.name, run.value)
 
 
+def compile_action_matchers(
+    config: Config,
+) -> dict[ActionConfig, bytes | re.Pattern]:
+    matchers: dict[ActionConfig, bytes | re.Pattern] = {}
+    for action in config.actions:
+        if action.type == 'match':
+            matchers[action] = action.value.encode()
+        elif action.type == 'match_regex':
+            matchers[action] = re.compile(action.value.encode())
+    return matchers
+
+
 def match_buffer_actions(
     config: Config,
     context: Context,
+    matchers: dict[ActionConfig, bytes | re.Pattern],
     buf: bytearray,
     buf_total_length: int,
     master_fd: int,
@@ -253,11 +276,11 @@ def match_buffer_actions(
             continue
 
         if action.type == 'match' or action.type == 'match_regex':
-            encoded_value = action.value.encode()
+            matcher = matchers[action]
             if action.type == 'match':
-                found_index = buf.find(encoded_value)
+                found_index = buf.find(matcher)
             elif action.type == 'match_regex':
-                m = re.search(encoded_value, buf)
+                m = matcher.search(buf)
                 found_index = m.start() if m else -1
             else:
                 assert False
@@ -289,12 +312,22 @@ def process_input_output(
 ):
     buf = bytearray()
     buf_total_length = 0
+    matchers = compile_action_matchers(config)
+
+    last_screen_snapshot_time = 0.0
 
     @SBPushLineCB
     def on_sb_pushline(cols: int, cells: Any, _user: ctypes.c_void_p):
+        nonlocal last_screen_snapshot_time
         row_data = get_vterm_row_data(cols, cells)
         stripped_row_data = get_vterm_stripped_row(row_data)
-        screen_data = get_vterm_screen_data(vterm, vterm_screen)
+
+        now = time.monotonic()
+        screen_data = None
+        if now - last_screen_snapshot_time >= SCREEN_SNAPSHOT_MIN_INTERVAL_S:
+            screen_data = get_vterm_screen_data(vterm, vterm_screen)
+            last_screen_snapshot_time = now
+
         context.write_log_history(stripped_row_data, screen_data)
         return 1
 
@@ -332,6 +365,7 @@ def process_input_output(
             match_buffer_actions(
                 config,
                 context,
+                matchers,
                 buf,
                 buf_total_length,
                 master_fd,
