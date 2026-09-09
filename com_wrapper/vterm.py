@@ -18,10 +18,17 @@ def get_vterm_stripped_row(row_data: bytearray):
     return row_data
 
 
+def encode_codepoint(codepoint: int) -> bytes:
+    try:
+        return chr(codepoint).encode()
+    except (ValueError, UnicodeEncodeError):
+        return '�'.encode()
+
+
 def get_vterm_row_data(cols: int, cells: Any):
     data = bytearray()
     for i in range(cols):
-        data.extend(chr(cells[i].chars[0]).encode())
+        data.extend(encode_codepoint(cells[i].chars[0]))
 
     return data
 
@@ -51,8 +58,7 @@ def get_vterm_screen_data(vterm: VTerm, vterm_screen: VTermScreen):
                 pos,
                 ctypes.byref(cell),
             )
-            char = chr(cell.chars[0]) if ok else ' '
-            row_data.extend(char.encode())
+            row_data.extend(encode_codepoint(cell.chars[0]) if ok else b' ')
 
         stripped_row_data = get_vterm_stripped_row(row_data)
         data.extend(stripped_row_data)
