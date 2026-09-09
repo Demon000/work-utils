@@ -307,7 +307,7 @@ def process_input_output(
             except OSError:
                 break
             if not data:
-                continue
+                break
 
             os.write(master_fd, data)
 
@@ -317,7 +317,7 @@ def process_input_output(
             except OSError:
                 break
             if not data:
-                continue
+                break
 
             buf.extend(data)
             buf_total_length += len(data)
