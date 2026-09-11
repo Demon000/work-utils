@@ -433,6 +433,29 @@ def setup_tftp(config: Config, context: Context, stop_event: Event):
     return t
 
 
+def nfs_thread_fn(config: Config, context: Context, stop_event: Event):
+    from nfs3py.server import NfsServer
+
+    server = NfsServer(config.nfs, lambda s: replace_str_args(context, s))
+    server.start()
+    stop_event.wait()
+    server.stop()
+
+
+def setup_nfs(config: Config, context: Context, stop_event: Event):
+    if config.nfs is None:
+        return None
+
+    t = Thread(
+        target=nfs_thread_fn,
+        args=(config, context, stop_event),
+        name='nfs-server',
+    )
+    t.start()
+
+    return t
+
+
 def run_wrapper(config: Config, context: Context):
     master_fd, slave_fd = pty.openpty()
     stdin_fd = sys.stdin.fileno()
@@ -538,10 +561,13 @@ def main():
     stop_event = Event()
 
     tftp_thread = setup_tftp(config, context, stop_event)
+    nfs_thread = setup_nfs(config, context, stop_event)
     run_wrapper(config, context)
 
     stop_event.set()
     tftp_thread.join()
+    if nfs_thread is not None:
+        nfs_thread.join()
 
 
 if __name__ == '__main__':

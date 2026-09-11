@@ -7,3 +7,4 @@ dtschema
 PyYAML
 types-PyYAML
 tftpy
+nfs3py @ git+https://github.com/Demon000/nfs3py.git@main
