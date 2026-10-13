@@ -202,7 +202,7 @@ START_TIME=$(date +%s.%N)
 if [[ ${#TARGETS[@]} -ne 0 ]]; then
 	make W=1 "${O_OPT[@]}" "${TARGETS[@]}"
 	if [[ $? -ne 0 ]]; then
-		exit
+		exit 1
 	fi
 fi
 
@@ -221,7 +221,7 @@ build_modules() {
 
 	make "${O_OPT[@]}" "${opts[@]}" "$MODULES_TARGET"
 	if [[ $? -ne 0 ]]; then
-		exit
+		exit 1
 	fi
 
 	if [[ -n "$dir_path" ]]; then
@@ -232,7 +232,7 @@ build_modules() {
 build_headers() {
 	make "${O_OPT[@]}" "$HEADERS_TARGET"
 	if [[ $? -ne 0 ]]; then
-		exit
+		exit 1
 	fi
 }
 
@@ -267,7 +267,7 @@ install_modules() {
 
 	make "${O_OPT[@]}" "${opts[@]}" "$mod_path_arg" "$mod_strip_arg" "$MODULES_INSTALL_TARGET"
 	if [[ $? -ne 0 ]]; then
-		exit
+		exit 1
 	fi
 
 	if [[ -n "$dir_path" ]]; then
@@ -297,7 +297,7 @@ install_headers() {
 
 	make "${O_OPT[@]}" "$hdr_path_arg" "$HEADERS_INSTALL_TARGET"
 	if [[ $? -ne 0 ]]; then
-		exit
+		exit 1
 	fi
 }
 
