@@ -25,6 +25,7 @@ import json5
 from config import (
     ActionConfig,
     Config,
+    MuxConfig,
     RunWriteConfig,
     RunWriteFromFileConfig,
 )
@@ -473,6 +474,89 @@ def setup_tftp(config: Config, context: Context, stop_event: Event):
     return t
 
 
+MUX_POLL_INTERVAL_S = 0.2
+
+
+def open_mux_device(mux: MuxConfig) -> int:
+    fd = os.open(mux.device, os.O_RDWR | os.O_NOCTTY)
+    attrs = termios.tcgetattr(fd)
+    speed = getattr(termios, f'B{mux.baud}')
+    tty.cfmakeraw(attrs)
+    attrs[4] = speed
+    attrs[5] = speed
+    termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    termios.tcflush(fd, termios.TCIOFLUSH)
+    return fd
+
+
+def open_mux_port(link: str) -> tuple[int, int]:
+    master_fd, slave_fd = pty.openpty()
+    attrs = termios.tcgetattr(slave_fd)
+    tty.cfmakeraw(attrs)
+    termios.tcsetattr(slave_fd, termios.TCSANOW, attrs)
+
+    if os.path.islink(link) or os.path.exists(link):
+        os.unlink(link)
+    os.symlink(os.ttyname(slave_fd), link)
+
+    return master_fd, slave_fd
+
+
+def mux_thread_fn(
+    mux: MuxConfig,
+    device_fd: int,
+    ports: dict[str, tuple[int, int]],
+    stop_event: Event,
+):
+    masters = [master_fd for master_fd, _ in ports.values()]
+
+    try:
+        while not stop_event.is_set():
+            rlist, _, _ = select.select(
+                [device_fd] + masters, [], [], MUX_POLL_INTERVAL_S
+            )
+
+            if device_fd in rlist:
+                data = os.read(device_fd, CHUNK_LEN)
+                for master_fd in masters:
+                    os.write(master_fd, data)
+
+            for master_fd in masters:
+                if master_fd not in rlist:
+                    continue
+
+                data = os.read(master_fd, CHUNK_LEN)
+                os.write(device_fd, data)
+    finally:
+        for name, (master_fd, slave_fd) in ports.items():
+            os.close(master_fd)
+            os.close(slave_fd)
+            os.unlink(mux.ports[name])
+        os.close(device_fd)
+
+
+def setup_mux(config: Config, context: Context, stop_event: Event):
+    if config.mux is None:
+        return None
+
+    device_fd = open_mux_device(config.mux)
+    ports = {}
+
+    for name, link in config.mux.ports.items():
+        ports[name] = open_mux_port(link)
+        context.set_arg(f'mux_{name}', link)
+        logging.info(f'Mux port {name} at {link}')
+
+    t = Thread(
+        target=mux_thread_fn,
+        args=(config.mux, device_fd, ports, stop_event),
+        name='mux',
+    )
+    t.start()
+
+    return t
+
+
 def nfs_thread_fn(config: Config, context: Context, stop_event: Event):
     from nfs3py.server import NfsServer
 
@@ -518,8 +602,9 @@ def run_wrapper(config: Config, context: Context):
     except Exception as e:
         logging.error(e)
 
+    program = tuple(replace_str_args(context, a) for a in config.program)
     proc = subprocess.Popen(
-        config.program,
+        program,
         stdin=slave_fd,
         stdout=slave_fd,
         stderr=subprocess.STDOUT,
@@ -600,14 +685,18 @@ def main():
 
     stop_event = Event()
 
+    mux_thread = setup_mux(config, context, stop_event)
     tftp_thread = setup_tftp(config, context, stop_event)
     nfs_thread = setup_nfs(config, context, stop_event)
+
     run_wrapper(config, context)
 
     stop_event.set()
     tftp_thread.join()
     if nfs_thread is not None:
         nfs_thread.join()
+    if mux_thread is not None:
+        mux_thread.join()
 
 
 if __name__ == '__main__':

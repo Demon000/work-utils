@@ -71,10 +71,17 @@ class NfsConfig(FrozenStrictModel):
     server_port: str
 
 
+class MuxConfig(FrozenStrictModel):
+    device: str
+    baud: int
+    ports: dict[str, str]
+
+
 class Config(FrozenStrictModel):
     write_char_delay_us: int
     program: tuple[str, ...]
     args: dict[str, str]
     tftp: TftpConfig
     nfs: Optional[NfsConfig] = None
+    mux: Optional[MuxConfig] = None
     actions: tuple[ActionConfig, ...]
