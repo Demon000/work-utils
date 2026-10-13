@@ -17,7 +17,6 @@ import tty
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from threading import Event, Thread
 from typing import Any, BinaryIO, Callable, Iterable, Optional, TypeVar
 
@@ -42,13 +41,12 @@ from vterm_bindings import (
     VTermScreenCallbacks,
     vterm_lib,
 )
+from tftppy import TftpServer
 
 MAX_BUF_LEN = 4096
 CHUNK_LEN = 1024
 
-# tftpy's TftpServer.listen() blocks in select() with this as the timeout
-# and only checks the stop flag once that select() call returns, so a
-# larger value here directly delays shutdown by up to that many seconds.
+# TftpServer.listen() polls its stop flag with this timeout.
 TFTP_SHUTDOWN_POLL_INTERVAL_S = 0.5
 
 # get_vterm_screen_data() does a full rows*cols cell-by-cell FFI scan
@@ -59,9 +57,6 @@ TFTP_SHUTDOWN_POLL_INTERVAL_S = 0.5
 # permanent scrollback history is still appended on every line regardless;
 # only this speculative "current screen" tail is rate-limited.
 SCREEN_SNAPSHOT_MIN_INTERVAL_S = 0.1
-
-logging.getLogger('tftpy').setLevel(logging.WARNING)
-
 
 class Context:
     def __init__(self, config_path: Path):
@@ -440,27 +435,24 @@ def dyn_file_func(
 
 
 def tftp_thread_fn(config: Config, context: Context, stop_event: Event):
-    import tftpy  # type: ignore
+    dyn_file_func_fn = partial(dyn_file_func, config, context)
+    server = TftpServer(dyn_file_func_fn)
+    server_ip = replace_str_args(context, config.tftp.server_ip)
+    server_port = replace_str_args(context, config.tftp.server_port)
 
-    with TemporaryDirectory(prefix='tftp-') as tmp_root:
-        dyn_file_func_fn = partial(dyn_file_func, config, context)
-        server = tftpy.TftpServer(tmp_root, dyn_file_func=dyn_file_func_fn)
-        server_ip = replace_str_args(context, config.tftp.server_ip)
-        server_port = replace_str_args(context, config.tftp.server_port)
+    listen_t = Thread(
+        target=server.listen,
+        args=(server_ip, int(server_port)),
+        kwargs={'timeout': TFTP_SHUTDOWN_POLL_INTERVAL_S},
+        name='tftp-listen',
+    )
+    listen_t.start()
 
-        listen_t = Thread(
-            target=server.listen,
-            args=(server_ip, int(server_port)),
-            kwargs={'timeout': TFTP_SHUTDOWN_POLL_INTERVAL_S},
-            name='tftp-listen',
-        )
-        listen_t.start()
-
-        stop_event.wait()
-        try:
-            server.stop(now=True)
-        finally:
-            listen_t.join()
+    stop_event.wait()
+    try:
+        server.stop(now=True)
+    finally:
+        listen_t.join()
 
 
 def setup_tftp(config: Config, context: Context, stop_event: Event):
