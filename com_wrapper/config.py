@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # TODO: add extract arg action
 # TODO: enforce error for unknown fields
@@ -78,10 +78,10 @@ class MuxConfig(FrozenStrictModel):
 
 
 class Config(FrozenStrictModel):
-    write_char_delay_us: int
-    program: tuple[str, ...]
-    args: dict[str, str]
+    write_char_delay_us: int = 0
+    program: Optional[tuple[str, ...]] = None
+    args: dict[str, str] = Field(default_factory=dict)
     tftp: TftpConfig
     nfs: Optional[NfsConfig] = None
     mux: Optional[MuxConfig] = None
-    actions: tuple[ActionConfig, ...]
+    actions: tuple[ActionConfig, ...] = ()

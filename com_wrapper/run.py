@@ -581,6 +581,8 @@ def setup_nfs(config: Config, context: Context, stop_event: Event):
 
 
 def run_wrapper(config: Config, context: Context):
+    assert config.program is not None
+
     master_fd, slave_fd = pty.openpty()
     stdin_fd = sys.stdin.fileno()
     stdout_fd = sys.stdout.fileno()
@@ -689,14 +691,21 @@ def main():
     tftp_thread = setup_tftp(config, context, stop_event)
     nfs_thread = setup_nfs(config, context, stop_event)
 
-    run_wrapper(config, context)
-
-    stop_event.set()
-    tftp_thread.join()
-    if nfs_thread is not None:
-        nfs_thread.join()
-    if mux_thread is not None:
-        mux_thread.join()
+    try:
+        if config.program is None:
+            logging.info('No interactive program configured; running services only')
+            stop_event.wait()
+        else:
+            run_wrapper(config, context)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop_event.set()
+        tftp_thread.join()
+        if nfs_thread is not None:
+            nfs_thread.join()
+        if mux_thread is not None:
+            mux_thread.join()
 
 
 if __name__ == '__main__':
