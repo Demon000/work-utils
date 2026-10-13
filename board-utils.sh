@@ -11,6 +11,8 @@ get_board_arch() {
         ARCH="arm64"
     elif [[ "$BOARD_TYPE" = "arm64" ]]; then
         ARCH="arm64"
+    elif [[ "$BOARD_TYPE" = "x86_64" ]]; then
+        ARCH="x86_64"
     else
         ARCH=""
     fi

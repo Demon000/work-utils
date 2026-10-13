@@ -15,8 +15,9 @@ print_usage() {
 	echo "	rpi4-64: Raspberry Pi 4 64bit"
 	echo "  rpi5: Raspberry Pi 5"
 	echo "	arm64: Basic ARM64 build"
+	echo "	x86_64: Basic native x86-64 build"
 	echo "options:"
-	echo "	-m|--modules <modules_path>: build dtbs and install them at the given path"
+	echo "	-m|--modules <modules_path>: build and install modules at the given path"
 	echo "	-h|--headers <headers_path>: build headers and install them at the given path"
 	echo "	-s|--source <source_path>: kernel source path, use current directory if not given"
 	echo "	-o|--out <out_path>: kernel output path, use source path if not given"
@@ -75,6 +76,7 @@ shift
 
 IMAGE_TARGET="Image"
 ZIMAGE_TARGET="zImage"
+BZIMAGE_TARGET="bzImage"
 DTBS_TARGET="dtbs"
 MODULES_TARGET="modules"
 HEADERS_TARGET="headers"
@@ -107,6 +109,8 @@ if [[ -z "$TARGETS" ]]; then
 		TARGETS+=("$IMAGE_TARGET")
 	elif [[ "$BOARD_ARCH" = "arm" ]]; then
 		TARGETS+=("$ZIMAGE_TARGET")
+	elif [[ "$BOARD_ARCH" = "x86_64" ]]; then
+		TARGETS+=("$BZIMAGE_TARGET")
 	else
 		red "Invalid arch $BOARD_ARCH"
 		exit 1
@@ -122,7 +126,9 @@ if [[ -z "$TARGETS" ]]; then
 		TARGETS+=("$HEADERS_INSTALL_TARGET")
 	fi
 
-	TARGETS+=("$DTBS_TARGET")
+	if [[ "$BOARD_ARCH" = "arm" || "$BOARD_ARCH" = "arm64" ]]; then
+		TARGETS+=("$DTBS_TARGET")
+	fi
 fi
 
 O_OPT=()
@@ -132,7 +138,7 @@ if [[ "$BOARD_ARCH" = "arm64" ]]; then
 	O_OPT+=(CROSS_COMPILE="aarch64-linux-gnu-")
 elif [[ "$BOARD_ARCH" = "arm" ]]; then
 	O_OPT+=(CROSS_COMPILE="arm-linux-gnueabihf-")
-else
+elif [[ "$BOARD_ARCH" != "x86_64" ]]; then
 	exit 1
 fi
 
